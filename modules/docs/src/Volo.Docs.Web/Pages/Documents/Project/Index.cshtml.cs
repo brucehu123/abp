@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using Volo.Abp.AspNetCore.Mvc.Localization;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Localization;
 using Volo.Docs.Documents;
 using Volo.Docs.HtmlConverting;
 using Volo.Docs.Models;
@@ -70,7 +73,12 @@ namespace Volo.Docs.Pages.Documents.Project
 
         public async Task<IActionResult> OnGetAsync()
         {
-            DocumentsUrlPrefix = _options.GetFormattedRoutePrefix();
+            DocumentsUrlPrefix = _options.RoutePrefix;
+
+            if (IsDocumentCultureDifferentThanCurrent())
+            {
+                return ReloadPageWithCulture();
+            }
 
             await SetProjectAsync();
             await SetProjectsAsync();
@@ -92,6 +100,24 @@ namespace Volo.Docs.Pages.Documents.Project
             SetLanguageSelectListItems();
 
             return Page();
+        }
+
+        private bool IsDocumentCultureDifferentThanCurrent()
+        {
+            var currentCulture = CultureInfo.CurrentCulture;
+            CultureInfo newCulture;
+
+            try
+            {
+                newCulture = CultureInfo.GetCultureInfo(LanguageCode);
+
+                return currentCulture.Name != newCulture.Name;
+            }
+            catch (CultureNotFoundException)
+            {
+                return false;
+            }
+
         }
 
         private bool IsDefaultDocument()
@@ -118,6 +144,14 @@ namespace Volo.Docs.Pages.Documents.Project
         private bool CheckLanguage()
         {
             return LanguageConfig.Languages.Any(l => l.Code == LanguageCode);
+        }
+
+        private IActionResult ReloadPageWithCulture()
+        {
+            var returnUrl = DocumentsUrlPrefix + LanguageCode + "/" + ProjectName + "/" + Version + "/" +
+                            DocumentName;
+
+            return Redirect("/Abp/Languages/Switch?culture=" + LanguageCode + "&uiCulture=" + LanguageCode + "&returnUrl=" + returnUrl);
         }
 
         private IActionResult RedirectToDefaultLanguage()
@@ -317,7 +351,7 @@ namespace Volo.Docs.Pages.Documents.Project
                 LanguageSelectListItems.Add(
                     new SelectListItem(
                         language.DisplayName,
-                        "/" + DocumentsUrlPrefix + language.Code + "/" + Project.ShortName + "/" + Version + "/" + DocumentName,
+                        DocumentsUrlPrefix + language.Code + "/" + Project.ShortName + "/" + Version + "/" + DocumentName,
                         language.Code == LanguageCode
                         )
                     );

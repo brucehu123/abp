@@ -12,6 +12,8 @@ This is the first part of the ASP.NET Core MVC tutorial series. See all parts:
 
 You can access to the **source code** of the application from [the GitHub repository](https://github.com/volosoft/abp/tree/master/samples/BookStore).
 
+> You can also watch [this video course](https://amazingsolutions.teachable.com/p/lets-build-the-bookstore-application) prepared by an ABP community member, based on this tutorial.
+
 ### Creating the Project
 
 Create a new project named `Acme.BookStore`, create the  database and run the application by following the [Getting Started document](../../Getting-Started-AspNetCore-MVC-Template.md).
@@ -337,13 +339,13 @@ Open the `Index.cshtml` and change the content as shown below:
 ````html
 @page
 @using Acme.BookStore.Web.Pages.Books
-@inherits Acme.BookStore.Web.Pages.BookStorePageBase
+@inherits Acme.BookStore.Web.Pages.BookStorePage
 @model IndexModel
 
 <h2>Books</h2>
 ````
 
-* This code changes the default inheritance of the Razor View Page Model so it **inherits** from the `BookStorePageBase` class (instead of `PageModel`).  The `BookStorePageBase` class which comes with the startup template and provides some shared properties/methods used by all pages.
+* This code changes the default inheritance of the Razor View Page Model so it **inherits** from the `BookStorePage` class (instead of `PageModel`).  The `BookStorePage` class which comes with the startup template and provides some shared properties/methods used by all pages.
 * Ensure that the `IndexModel` (*Index.cshtml.cs)* has the `Acme.BookStore.Pages.Books` namespace, or update it in the `Index.cshtml`.
 
 #### Add Books Page to the Main Menu
@@ -394,7 +396,7 @@ Change the `Pages/Books/Index.cshtml` as following:
 
 ````html
 @page
-@inherits Acme.BookStore.Web.Pages.BookStorePageBase
+@inherits Acme.BookStore.Web.Pages.BookStorePage
 @model Acme.BookStore.Web.Pages.Books.IndexModel
 @section scripts
 {

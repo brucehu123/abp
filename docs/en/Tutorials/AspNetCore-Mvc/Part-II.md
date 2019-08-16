@@ -10,6 +10,8 @@ This is the second part of the ASP.NET Core MVC tutorial series. See all parts:
 
 You can access to the **source code** of the application from [the GitHub repository](https://github.com/volosoft/abp/tree/master/samples/BookStore).
 
+> You can also watch [this video course](https://amazingsolutions.teachable.com/p/lets-build-the-bookstore-application) prepared by an ABP community member, based on this tutorial.
+
 ### Creating a New Book
 
 In this section, you will learn how to create a new modal dialog form to create a new book. The result dialog will be like that:
@@ -32,7 +34,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Acme.BookStore.Web.Pages.Books
 {
-    public class CreateModalModel : BookStorePageModelBase
+    public class CreateModalModel : BookStorePageModel
     {
         [BindProperty]
         public CreateUpdateBookDto Book { get; set; }
@@ -53,7 +55,7 @@ namespace Acme.BookStore.Web.Pages.Books
 }
 ````
 
-* This class is derived from the `BookStorePageModelBase` instead of standard `PageModel`. `BookStorePageModelBase` inherits the `PageModel` and adds some common properties/methods those can be used by your page model classes.
+* This class is derived from the `BookStorePageModel` instead of standard `PageModel`. `BookStorePageModel` inherits the `PageModel` and adds some common properties/methods those can be used by your page model classes.
 * `[BindProperty]` attribute on the `Book` property binds post request data to this property.
 * This class simply injects the `IBookAppService` in its constructor and calls the `CreateAsync` method in the `OnPostAsync` handler.
 
@@ -63,7 +65,7 @@ Open the `CreateModal.cshtml` file and paste the code below:
 
 ````html
 @page
-@inherits Acme.BookStore.Web.Pages.BookStorePageBase
+@inherits Acme.BookStore.Web.Pages.BookStorePage
 @using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal
 @model Acme.BookStore.Web.Pages.Books.CreateModalModel
 @{
@@ -145,7 +147,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Acme.BookStore.Web.Pages.Books
 {
-    public class EditModalModel : BookStorePageModelBase
+    public class EditModalModel : BookStorePageModel
     {
         [HiddenInput]
         [BindProperty(SupportsGet = true)]
@@ -207,7 +209,7 @@ Replace `EditModal.cshtml` content with the following content:
 
 ````html
 @page
-@inherits Acme.BookStore.Web.Pages.BookStorePageBase
+@inherits Acme.BookStore.Web.Pages.BookStorePage
 @using Acme.BookStore.Web.Pages.Books
 @using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Modal
 @model EditModalModel
@@ -313,10 +315,12 @@ $(function () {
 ````
 
 * Used `abp.localization.getResource('BookStore')` to be able to use the same localization texts defined on the server side.
+* Added a new `ModalManager` named `createModal` to open the create modal dialog.
 * Added a new `ModalManager` named `editModal` to open the edit modal dialog.
 * Added a new column at the beginning of the `columnDefs` section. This column is used for the "Actions" dropdown button.
+* "New Book" action simply calls `createModal.open` to open the create dialog.
 * "Edit" action simply calls `editModal.open` to open the edit dialog.
-
+`
 You can run the application and edit any book by selecting the edit action.
 
 ### Deleting an Existing Book
@@ -355,6 +359,12 @@ $(function () {
     var editModal = new abp.ModalManager(abp.appPath + 'Books/EditModal');
 
     var dataTable = $('#BooksTable').DataTable(abp.libs.datatables.normalizeConfiguration({
+        processing: true,
+        serverSide: true,
+        paging: true,
+        searching: false,
+        autoWidth: false,
+        scrollCollapse: true,
         order: [[1, "asc"]],
         ajax: abp.libs.datatables.createAjax(acme.bookStore.book.getList),
         columnDefs: [
