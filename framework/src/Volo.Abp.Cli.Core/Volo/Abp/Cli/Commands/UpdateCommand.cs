@@ -5,9 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Volo.Abp.Cli.Args;
+using Volo.Abp.Cli.ProjectBuilding.Analyticses;
 using Volo.Abp.Cli.ProjectModification;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Json;
 using Volo.Abp.Threading;
 
 namespace Volo.Abp.Cli.Commands
@@ -18,18 +22,28 @@ namespace Volo.Abp.Cli.Commands
 
         private readonly VoloNugetPackagesVersionUpdater _nugetPackagesVersionUpdater;
         private readonly NpmPackagesUpdater _npmPackagesUpdater;
+        private readonly ICliAnalyticsCollect _cliAnalyticsCollect;
+        private readonly CliOptions _options;
+        private readonly IJsonSerializer _jsonSerializer;
 
-        public UpdateCommand(VoloNugetPackagesVersionUpdater nugetPackagesVersionUpdater, NpmPackagesUpdater npmPackagesUpdater)
+        public UpdateCommand(VoloNugetPackagesVersionUpdater nugetPackagesVersionUpdater,
+            NpmPackagesUpdater npmPackagesUpdater,
+            ICliAnalyticsCollect cliAnalyticsCollect, 
+            IJsonSerializer jsonSerializer, 
+            IOptions<CliOptions> options)
         {
             _nugetPackagesVersionUpdater = nugetPackagesVersionUpdater;
             _npmPackagesUpdater = npmPackagesUpdater;
+            _cliAnalyticsCollect = cliAnalyticsCollect;
+            _jsonSerializer = jsonSerializer;
+            _options = options.Value;
 
             Logger = NullLogger<UpdateCommand>.Instance;
         }
 
         public async Task ExecuteAsync(CommandLineArgs commandLineArgs)
         {
-            UpdateNugetPackages(commandLineArgs);
+            await UpdateNugetPackages(commandLineArgs);
             UpdateNpmPackages();
         }
 
@@ -38,7 +52,7 @@ namespace Volo.Abp.Cli.Commands
             _npmPackagesUpdater.Update(Directory.GetCurrentDirectory());
         }
 
-        private void UpdateNugetPackages(CommandLineArgs commandLineArgs)
+        private async Task UpdateNugetPackages(CommandLineArgs commandLineArgs)
         {
             var includePreviews =
                 commandLineArgs.Options.GetOrNull(Options.IncludePreviews.Short, Options.IncludePreviews.Long) != null;
@@ -49,7 +63,7 @@ namespace Volo.Abp.Cli.Commands
             {
                 var solutionName = Path.GetFileName(solution).RemovePostFix(".sln");
 
-                _nugetPackagesVersionUpdater.UpdateSolution(solution, includePreviews);
+                await _nugetPackagesVersionUpdater.UpdateSolutionAsync(solution, includePreviews);
 
                 Logger.LogInformation($"Volo packages are updated in {solutionName} solution.");
                 return;
@@ -61,40 +75,45 @@ namespace Volo.Abp.Cli.Commands
             {
                 var projectName = Path.GetFileName(project).RemovePostFix(".csproj");
 
-                _nugetPackagesVersionUpdater.UpdateProject(project, includePreviews);
+                await _nugetPackagesVersionUpdater.UpdateProjectAsync(project, includePreviews);
 
                 Logger.LogInformation($"Volo packages are updated in {projectName} project.");
                 return;
             }
 
-            throw new CliUsageException("No solution or project found in this directory." + Environment.NewLine +
-                                        Environment.NewLine + AsyncHelper.RunSync(GetUsageInfo));
+            throw new CliUsageException(
+                "No solution or project found in this directory." +
+                Environment.NewLine + Environment.NewLine +
+                GetUsageInfo()
+            );
         }
 
-        public Task<string> GetUsageInfo()
+        public string GetUsageInfo()
         {
             var sb = new StringBuilder();
 
             sb.AppendLine("");
             sb.AppendLine("Usage:");
-            sb.AppendLine("  abp update  [-p|--include-previews]");
+            sb.AppendLine("");
+            sb.AppendLine("  abp update  [options]");
             sb.AppendLine("");
             sb.AppendLine("Options:");
-            sb.AppendLine("--include-previews                          (if supported by the template)");
+            sb.AppendLine("-p|--include-previews                       (if supported by the template)");
             sb.AppendLine("");
             sb.AppendLine("Some examples:");
-            sb.AppendLine("  abp update");
-            sb.AppendLine("  abp update --include-previews");
             sb.AppendLine("");
-            sb.AppendLine("See the documentation for more info.");
+            sb.AppendLine("  abp update");
+            sb.AppendLine("  abp update -p");
+            sb.AppendLine("");
+            sb.AppendLine("See the documentation for more info: https://docs.abp.io/en/abp/latest/CLI");
 
-            return Task.FromResult(sb.ToString());
+            return sb.ToString();
         }
 
-        public Task<string> GetShortDescriptionAsync()
+        public string GetShortDescription()
         {
-            return Task.FromResult("Automatically updates all ABP related NuGet packages and NPM packages in a" +
-                                   " solution or project to the latest versions");
+            return "Automatically updates all ABP related NuGet packages and NPM packages in a" +
+                   " solution or project to the latest versions";
         }
 
         public static class Options
