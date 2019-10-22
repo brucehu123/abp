@@ -1,21 +1,21 @@
 import { ConfigState, GetAppConfiguration, RestService, DynamicLayoutComponent, SessionState, SetTenant, CoreModule } from '@abp/ng.core';
+import { ToasterService, ThemeSharedModule } from '@abp/ng.theme.shared';
 import { Component, Optional, Inject, Injectable, ɵɵdefineInjectable, ɵɵinject, NgModule, InjectionToken } from '@angular/core';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgxValidateCoreModule } from '@ngx-validate/core';
+import { TableModule } from 'primeng/table';
 import { RouterModule } from '@angular/router';
 import { Validators, FormBuilder } from '@angular/forms';
 import { Navigate } from '@ngxs/router-plugin';
 import { Store } from '@ngxs/store';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { from, throwError } from 'rxjs';
-import { ToasterService, ThemeSharedModule } from '@abp/ng.theme.shared';
 import { switchMap, tap, catchError, finalize, take } from 'rxjs/operators';
 import snq from 'snq';
-import { TableModule } from 'primeng/table';
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
-import { NgxValidateCoreModule } from '@ngx-validate/core';
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 const { maxLength, minLength, required } = Validators;
 class LoginComponent {
@@ -46,7 +46,7 @@ class LoginComponent {
     onSubmit() {
         if (this.form.invalid)
             return;
-        this.oauthService.setStorage(this.form.value.remember ? localStorage : sessionStorage);
+        // this.oauthService.setStorage(this.form.value.remember ? localStorage : sessionStorage);
         this.inProgress = true;
         from(this.oauthService.fetchTokenUsingPasswordFlow(this.form.get('username').value, this.form.get('password').value))
             .pipe(switchMap((/**
@@ -131,7 +131,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class AccountService {
     /**
@@ -148,7 +148,7 @@ class AccountService {
         /** @type {?} */
         const request = {
             method: 'GET',
-            url: `/api/abp/multi-tenancy/find-tenant/${tenantName}`,
+            url: `/api/abp/multi-tenancy/tenants/by-name/${tenantName}`,
         };
         return this.rest.request(request);
     }
@@ -160,10 +160,10 @@ class AccountService {
         /** @type {?} */
         const request = {
             method: 'POST',
-            url: `/api/account/register`,
+            url: '/api/account/register',
             body,
         };
-        return this.rest.request(request, { throwErr: true });
+        return this.rest.request(request, { skipHandleError: true });
     }
 }
 AccountService.decorators = [
@@ -186,7 +186,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 const { maxLength: maxLength$1, minLength: minLength$1, required: required$1, email } = Validators;
 class RegisterComponent {
@@ -223,7 +223,7 @@ class RegisterComponent {
             userName: this.form.get('username').value,
             password: this.form.get('password').value,
             emailAddress: this.form.get('email').value,
-            appName: 'angular',
+            appName: 'Angular',
         }));
         this.accountService
             .register(newUser)
@@ -305,7 +305,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /** @type {?} */
 const routes = [
@@ -327,7 +327,7 @@ AccountRoutingModule.decorators = [
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class TenantBoxComponent {
     /**
@@ -345,7 +345,9 @@ class TenantBoxComponent {
      * @return {?}
      */
     ngOnInit() {
-        this.tenant = this.store.selectSnapshot(SessionState.getTenant) || ((/** @type {?} */ ({})));
+        this.tenant =
+            this.store.selectSnapshot(SessionState.getTenant) ||
+                ((/** @type {?} */ ({})));
         this.tenantName = this.tenant.name || '';
     }
     /**
@@ -380,14 +382,14 @@ class TenantBoxComponent {
                 if (success) {
                     this.tenant = {
                         id: tenantId,
-                        name: this.tenant.name,
+                        name: this.tenant.name
                     };
                     this.tenantName = this.tenant.name;
                     this.isModalVisible = false;
                 }
                 else {
-                    this.toasterService.error(`AbpUiMultiTenancy::GivenTenantIsNotAvailable`, 'AbpUi::Error', {
-                        messageLocalizationParams: [this.tenant.name],
+                    this.toasterService.error('AbpUiMultiTenancy::GivenTenantIsNotAvailable', 'AbpUi::Error', {
+                        messageLocalizationParams: [this.tenant.name]
                     });
                     this.tenant = (/** @type {?} */ ({}));
                 }
@@ -439,7 +441,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @param {?} options
@@ -453,26 +455,9 @@ const ACCOUNT_OPTIONS = new InjectionToken('ACCOUNT_OPTIONS');
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 class AccountModule {
-    /**
-     * @param {?=} options
-     * @return {?}
-     */
-    static forRoot(options = (/** @type {?} */ ({}))) {
-        return {
-            ngModule: AccountModule,
-            providers: [
-                { provide: ACCOUNT_OPTIONS, useValue: options },
-                {
-                    provide: 'ACCOUNT_OPTIONS',
-                    useFactory: optionsFactory,
-                    deps: [ACCOUNT_OPTIONS],
-                },
-            ],
-        };
-    }
 }
 AccountModule.decorators = [
     { type: NgModule, args: [{
@@ -481,35 +466,57 @@ AccountModule.decorators = [
                 exports: [],
             },] }
 ];
+/**
+ *
+ * @deprecated since version 0.9
+ * @param {?=} options
+ * @return {?}
+ */
+function AccountProviders(options = (/** @type {?} */ ({}))) {
+    return [
+        { provide: ACCOUNT_OPTIONS, useValue: options },
+        {
+            provide: 'ACCOUNT_OPTIONS',
+            useFactory: optionsFactory,
+            deps: [ACCOUNT_OPTIONS],
+        },
+    ];
+}
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-/** @type {?} */
-const ACCOUNT_ROUTES = (/** @type {?} */ ([
-    {
-        name: 'Account',
-        path: 'account',
-        invisible: true,
-        layout: "application" /* application */,
-        children: [{ path: 'login', name: 'Login', order: 1 }, { path: 'register', name: 'Register', order: 2 }],
-    },
-]));
+/**
+ *
+ * @deprecated since version 0.9
+ * @type {?}
+ */
+const ACCOUNT_ROUTES = {
+    routes: (/** @type {?} */ ([
+        {
+            name: 'Account',
+            path: 'account',
+            invisible: true,
+            layout: "application" /* application */,
+            children: [{ path: 'login', name: 'Login', order: 1 }, { path: 'register', name: 'Register', order: 2 }],
+        },
+    ])),
+};
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @record
@@ -522,7 +529,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @record
@@ -587,7 +594,7 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 /**
  * @record
@@ -602,18 +609,18 @@ if (false) {
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
 
-export { ACCOUNT_OPTIONS, ACCOUNT_ROUTES, AccountModule, LoginComponent, RegisterComponent, optionsFactory, LoginComponent as ɵa, RegisterComponent as ɵc, AccountService as ɵd, TenantBoxComponent as ɵe, AccountRoutingModule as ɵf, optionsFactory as ɵg, ACCOUNT_OPTIONS as ɵh };
+export { ACCOUNT_OPTIONS, ACCOUNT_ROUTES, AccountModule, AccountProviders, LoginComponent, RegisterComponent, optionsFactory, LoginComponent as ɵa, RegisterComponent as ɵc, AccountService as ɵd, TenantBoxComponent as ɵe, AccountRoutingModule as ɵf, optionsFactory as ɵg, ACCOUNT_OPTIONS as ɵh };
 //# sourceMappingURL=abp-ng.account.js.map

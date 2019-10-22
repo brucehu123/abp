@@ -1,15 +1,21 @@
 /**
  * @fileoverview added by tsickle
- * @suppress {checkTypes,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
+ * @suppress {checkTypes,constantProperty,extraRequire,missingOverride,missingReturn,unusedPrivateMembers,uselessCode} checked by tsc
  */
-/** @type {?} */
-export const ACCOUNT_ROUTES = (/** @type {?} */ ([
-    {
-        name: 'Account',
-        path: 'account',
-        invisible: true,
-        layout: "application" /* application */,
-        children: [{ path: 'login', name: 'Login', order: 1 }, { path: 'register', name: 'Register', order: 2 }],
-    },
-]));
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicm91dGVzLmpzIiwic291cmNlUm9vdCI6Im5nOi8vQGFicC9uZy5hY2NvdW50LyIsInNvdXJjZXMiOlsibGliL2NvbnN0YW50cy9yb3V0ZXMudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7QUFFQSxNQUFNLE9BQU8sY0FBYyxHQUFHLG1CQUFBO0lBQzVCO1FBQ0UsSUFBSSxFQUFFLFNBQVM7UUFDZixJQUFJLEVBQUUsU0FBUztRQUNmLFNBQVMsRUFBRSxJQUFJO1FBQ2YsTUFBTSxpQ0FBeUI7UUFDL0IsUUFBUSxFQUFFLENBQUMsRUFBRSxJQUFJLEVBQUUsT0FBTyxFQUFFLElBQUksRUFBRSxPQUFPLEVBQUUsS0FBSyxFQUFFLENBQUMsRUFBRSxFQUFFLEVBQUUsSUFBSSxFQUFFLFVBQVUsRUFBRSxJQUFJLEVBQUUsVUFBVSxFQUFFLEtBQUssRUFBRSxDQUFDLEVBQUUsQ0FBQztLQUN6RztDQUNGLEVBQW1CIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgQUJQLCBlTGF5b3V0VHlwZSB9IGZyb20gJ0BhYnAvbmcuY29yZSc7XG5cbmV4cG9ydCBjb25zdCBBQ0NPVU5UX1JPVVRFUyA9IFtcbiAge1xuICAgIG5hbWU6ICdBY2NvdW50JyxcbiAgICBwYXRoOiAnYWNjb3VudCcsXG4gICAgaW52aXNpYmxlOiB0cnVlLFxuICAgIGxheW91dDogZUxheW91dFR5cGUuYXBwbGljYXRpb24sXG4gICAgY2hpbGRyZW46IFt7IHBhdGg6ICdsb2dpbicsIG5hbWU6ICdMb2dpbicsIG9yZGVyOiAxIH0sIHsgcGF0aDogJ3JlZ2lzdGVyJywgbmFtZTogJ1JlZ2lzdGVyJywgb3JkZXI6IDIgfV0sXG4gIH0sXG5dIGFzIEFCUC5GdWxsUm91dGVbXTtcbiJdfQ==
+/**
+ *
+ * @deprecated since version 0.9
+ * @type {?}
+ */
+export const ACCOUNT_ROUTES = {
+    routes: (/** @type {?} */ ([
+        {
+            name: 'Account',
+            path: 'account',
+            invisible: true,
+            layout: "application" /* application */,
+            children: [{ path: 'login', name: 'Login', order: 1 }, { path: 'register', name: 'Register', order: 2 }],
+        },
+    ])),
+};
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicm91dGVzLmpzIiwic291cmNlUm9vdCI6Im5nOi8vQGFicC9uZy5hY2NvdW50LyIsInNvdXJjZXMiOlsibGliL2NvbnN0YW50cy9yb3V0ZXMudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7O0FBTUEsTUFBTSxPQUFPLGNBQWMsR0FBRztJQUM1QixNQUFNLEVBQUUsbUJBQUE7UUFDTjtZQUNFLElBQUksRUFBRSxTQUFTO1lBQ2YsSUFBSSxFQUFFLFNBQVM7WUFDZixTQUFTLEVBQUUsSUFBSTtZQUNmLE1BQU0saUNBQXlCO1lBQy9CLFFBQVEsRUFBRSxDQUFDLEVBQUUsSUFBSSxFQUFFLE9BQU8sRUFBRSxJQUFJLEVBQUUsT0FBTyxFQUFFLEtBQUssRUFBRSxDQUFDLEVBQUUsRUFBRSxFQUFFLElBQUksRUFBRSxVQUFVLEVBQUUsSUFBSSxFQUFFLFVBQVUsRUFBRSxLQUFLLEVBQUUsQ0FBQyxFQUFFLENBQUM7U0FDekc7S0FDRixFQUFtQjtDQUNyQiIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEFCUCwgZUxheW91dFR5cGUgfSBmcm9tICdAYWJwL25nLmNvcmUnO1xuXG4vKipcbiAqXG4gKiBAZGVwcmVjYXRlZCBzaW5jZSB2ZXJzaW9uIDAuOVxuICovXG5leHBvcnQgY29uc3QgQUNDT1VOVF9ST1VURVMgPSB7XG4gIHJvdXRlczogW1xuICAgIHtcbiAgICAgIG5hbWU6ICdBY2NvdW50JyxcbiAgICAgIHBhdGg6ICdhY2NvdW50JyxcbiAgICAgIGludmlzaWJsZTogdHJ1ZSxcbiAgICAgIGxheW91dDogZUxheW91dFR5cGUuYXBwbGljYXRpb24sXG4gICAgICBjaGlsZHJlbjogW3sgcGF0aDogJ2xvZ2luJywgbmFtZTogJ0xvZ2luJywgb3JkZXI6IDEgfSwgeyBwYXRoOiAncmVnaXN0ZXInLCBuYW1lOiAnUmVnaXN0ZXInLCBvcmRlcjogMiB9XSxcbiAgICB9LFxuICBdIGFzIEFCUC5GdWxsUm91dGVbXSxcbn07XG4iXX0=
