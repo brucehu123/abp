@@ -21,11 +21,13 @@ using Volo.Abp.AspNetCore.Mvc.UI;
 using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
+using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.Caching;
+using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.FeatureManagement;
-using Volo.Abp.Http.Client.IdentityModel;
+using Volo.Abp.Http.Client.IdentityModel.Web;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.Web;
 using Volo.Abp.Modularity;
@@ -37,6 +39,7 @@ using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.Web;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.UI;
+using Volo.Abp.UI.Navigation;
 using Volo.Abp.VirtualFileSystem;
 
 namespace MyCompanyName.MyProjectName
@@ -48,13 +51,15 @@ namespace MyCompanyName.MyProjectName
         typeof(AbpAspNetCoreMvcClientModule),
         typeof(AbpAspNetCoreMvcUiBasicThemeModule),
         typeof(AbpAutofacModule),
-        typeof(AbpHttpClientIdentityModelModule),
+        typeof(AbpCachingStackExchangeRedisModule),
+        typeof(AbpHttpClientIdentityModelWebModule),
         typeof(AbpIdentityWebModule),
         typeof(AbpIdentityHttpApiClientModule),
         typeof(AbpTenantManagementWebModule),
         typeof(AbpTenantManagementHttpApiClientModule),
         typeof(AbpFeatureManagementHttpApiClientModule),
-        typeof(AbpPermissionManagementHttpApiClientModule)
+        typeof(AbpPermissionManagementHttpApiClientModule),
+        typeof(AbpAspNetCoreSerilogModule)
         )]
     public class MyProjectNameWebHostModule : AbpModule
     {
@@ -70,12 +75,13 @@ namespace MyCompanyName.MyProjectName
                 );
             });
         }
-        
+
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var hostingEnvironment = context.Services.GetHostingEnvironment();
             var configuration = context.Services.GetConfiguration();
 
+            ConfigureMenu(configuration);
             ConfigureCache(configuration);
             ConfigureUrls(configuration);
             ConfigureAuthentication(context, configuration);
@@ -85,7 +91,15 @@ namespace MyCompanyName.MyProjectName
             ConfigureMultiTenancy();
             ConfigureRedis(context, configuration, hostingEnvironment);
         }
-        
+
+        private void ConfigureMenu(IConfiguration configuration)
+        {
+            Configure<AbpNavigationOptions>(options =>
+            {
+                options.MenuContributors.Add(new MyProjectNameWebHostMenuContributor(configuration));
+            });
+        }
+
         private void ConfigureCache(IConfiguration configuration)
         {
             Configure<AbpDistributedCacheOptions>(options =>
@@ -98,7 +112,7 @@ namespace MyCompanyName.MyProjectName
         {
             Configure<AppUrlOptions>(options =>
             {
-                options.Applications["MVC"].RootUrl = configuration["AppSelfUrl"];
+                options.Applications["MVC"].RootUrl = configuration["App:SelfUrl"];
             });
         }
 
@@ -190,11 +204,6 @@ namespace MyCompanyName.MyProjectName
             IConfiguration configuration,
             IWebHostEnvironment hostingEnvironment)
         {
-            context.Services.AddStackExchangeRedisCache(options =>
-            {
-                options.Configuration = configuration["Redis:Configuration"];
-            });
-
             if (!hostingEnvironment.IsDevelopment())
             {
                 var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]);
@@ -222,8 +231,7 @@ namespace MyCompanyName.MyProjectName
             app.UseHttpsRedirection();
             app.UseVirtualFiles();
             app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseAuthentication(); 
 
             if (MultiTenancyConsts.IsEnabled)
             {
@@ -231,6 +239,7 @@ namespace MyCompanyName.MyProjectName
             }
 
             app.UseAbpRequestLocalization();
+            app.UseAuthorization();
 
             app.UseSwagger();
             app.UseSwaggerUI(options =>
@@ -239,8 +248,8 @@ namespace MyCompanyName.MyProjectName
             });
 
             app.UseAuditing();
-
-            app.UseMvcWithDefaultRouteAndArea();
+            app.UseAbpSerilogEnrichers();
+            app.UseConfiguredEndpoints();
         }
     }
 }

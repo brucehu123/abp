@@ -4,10 +4,12 @@ using Microsoft.Extensions.Options;
 using Volo.Abp.AspNetCore.Mvc.Localization;
 using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
+using Volo.Abp.AspNetCore.Mvc.UI.Packages.Prismjs;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.Modularity;
 using Volo.Abp.UI.Navigation;
 using Volo.Abp.VirtualFileSystem;
+using Volo.Blogging.Bundling;
 using Volo.Blogging.Localization;
 
 namespace Volo.Blogging
@@ -35,11 +37,6 @@ namespace Volo.Blogging
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<AbpNavigationOptions>(options =>
-            {
-                options.MenuContributors.Add(new BloggingMenuContributor());
-            });
-
             Configure<AbpVirtualFileSystemOptions>(options =>
             {
                 options.FileSets.AddEmbedded<BloggingWebModule>("Volo.Blogging");
@@ -51,6 +48,17 @@ namespace Volo.Blogging
                 options.AddProfile<AbpBloggingWebAutoMapperProfile>(validate: true);
             });
 
+            Configure<AbpBundleContributorOptions>(options =>
+            {
+                options
+                    .Extensions<PrismjsStyleBundleContributor>()
+                    .Add<PrismjsStyleBundleContributorBloggingExtension>();
+
+                options
+                    .Extensions<PrismjsScriptBundleContributor>()
+                    .Add<PrismjsScriptBundleContributorBloggingExtension>();
+            });
+
             Configure<RazorPagesOptions>(options =>
             {
                 var urlOptions = context.Services
@@ -59,10 +67,10 @@ namespace Volo.Blogging
 
                 var routePrefix = urlOptions.RoutePrefix;
 
-                options.Conventions.AddPageRoute("/Blog/Posts/Index", routePrefix + "{blogShortName}");
-                options.Conventions.AddPageRoute("/Blog/Posts/Detail", routePrefix + "{blogShortName}/{postUrl}");
-                options.Conventions.AddPageRoute("/Blog/Posts/Edit", routePrefix + "{blogShortName}/posts/{postId}/edit");
-                options.Conventions.AddPageRoute("/Blog/Posts/New", routePrefix + "{blogShortName}/posts/new");
+                options.Conventions.AddPageRoute("/Blogs/Posts/Index", routePrefix + "{blogShortName}");
+                options.Conventions.AddPageRoute("/Blogs/Posts/Detail", routePrefix + "{blogShortName}/{postUrl}");
+                options.Conventions.AddPageRoute("/Blogs/Posts/Edit", routePrefix + "{blogShortName}/posts/{postId}/edit");
+                options.Conventions.AddPageRoute("/Blogs/Posts/New", routePrefix + "{blogShortName}/posts/new");
             });
         }
     }

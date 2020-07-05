@@ -1,17 +1,25 @@
-import { ABP } from '@abp/ng.core';
-import { ConfirmationService, Toaster } from '@abp/ng.theme.shared';
-import { Component, TemplateRef, ViewChild, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { ListService } from '@abp/ng.core';
+import { ePermissionManagementComponents } from '@abp/ng.permission-management';
+import { Confirmation, ConfirmationService } from '@abp/ng.theme.shared';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 import { finalize, pluck } from 'rxjs/operators';
-import { CreateRole, DeleteRole, GetRoleById, GetRoles, UpdateRole } from '../../actions/identity.actions';
+import {
+  CreateRole,
+  DeleteRole,
+  GetRoleById,
+  GetRoles,
+  UpdateRole,
+} from '../../actions/identity.actions';
 import { Identity } from '../../models/identity';
 import { IdentityState } from '../../states/identity.state';
 
 @Component({
   selector: 'abp-roles',
   templateUrl: './roles.component.html',
+  providers: [ListService],
 })
 export class RolesComponent implements OnInit {
   @Select(IdentityState.getRoles)
@@ -30,31 +38,29 @@ export class RolesComponent implements OnInit {
 
   providerKey: string;
 
-  pageQuery: ABP.PageQueryParams = {};
-
-  loading = false;
-
   modalBusy = false;
 
-  sortOrder = '';
+  permissionManagementKey = ePermissionManagementComponents.PermissionManagement;
 
-  sortKey = '';
+  @ViewChild('formRef', { static: false, read: ElementRef })
+  formRef: ElementRef<HTMLFormElement>;
 
-  @ViewChild('modalContent', { static: false })
-  modalContent: TemplateRef<any>;
+  onVisiblePermissionChange = event => {
+    this.visiblePermissions = event;
+  };
 
-  constructor(private confirmationService: ConfirmationService, private fb: FormBuilder, private store: Store) {}
+  constructor(
+    public readonly list: ListService,
+    private confirmationService: ConfirmationService,
+    private fb: FormBuilder,
+    private store: Store,
+  ) {}
 
   ngOnInit() {
-    this.get();
+    this.hookToQuery();
   }
 
-  onSearch(value) {
-    this.pageQuery.filter = value;
-    this.get();
-  }
-
-  createForm() {
+  buildForm() {
     this.form = this.fb.group({
       name: new FormControl({ value: this.selected.name || '', disabled: this.selected.isStatic }, [
         Validators.required,
@@ -66,16 +72,16 @@ export class RolesComponent implements OnInit {
   }
 
   openModal() {
-    this.createForm();
+    this.buildForm();
     this.isModalVisible = true;
   }
 
-  onAdd() {
+  add() {
     this.selected = {} as Identity.RoleItem;
     this.openModal();
   }
 
-  onEdit(id: string) {
+  edit(id: string) {
     this.store
       .dispatch(new GetRoleById(id))
       .pipe(pluck('IdentityState', 'selectedRole'))
@@ -92,12 +98,13 @@ export class RolesComponent implements OnInit {
     this.store
       .dispatch(
         this.selected.id
-          ? new UpdateRole({ ...this.form.value, id: this.selected.id })
+          ? new UpdateRole({ ...this.selected, ...this.form.value, id: this.selected.id })
           : new CreateRole(this.form.value),
       )
+      .pipe(finalize(() => (this.modalBusy = false)))
       .subscribe(() => {
-        this.modalBusy = false;
         this.isModalVisible = false;
+        this.list.get();
       });
   }
 
@@ -106,25 +113,33 @@ export class RolesComponent implements OnInit {
       .warn('AbpIdentity::RoleDeletionConfirmationMessage', 'AbpIdentity::AreYouSure', {
         messageLocalizationParams: [name],
       })
-      .subscribe((status: Toaster.Status) => {
-        if (status === Toaster.Status.confirm) {
-          this.store.dispatch(new DeleteRole(id));
+      .subscribe((status: Confirmation.Status) => {
+        if (status === Confirmation.Status.confirm) {
+          this.store.dispatch(new DeleteRole(id)).subscribe(() => this.list.get());
         }
       });
   }
 
-  onPageChange(data) {
-    this.pageQuery.skipCount = data.first;
-    this.pageQuery.maxResultCount = data.rows;
-
-    this.get();
+  private hookToQuery() {
+    this.list.hookToQuery(query => this.store.dispatch(new GetRoles(query))).subscribe();
   }
 
-  get() {
-    this.loading = true;
-    this.store
-      .dispatch(new GetRoles(this.pageQuery))
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe();
+  onClickSaveButton() {
+    this.formRef.nativeElement.dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true }),
+    );
+  }
+
+  openPermissionsModal(providerKey: string) {
+    this.providerKey = providerKey;
+    setTimeout(() => {
+      this.visiblePermissions = true;
+    }, 0);
+  }
+
+  sort(data) {
+    const { prop, dir } = data.sorts[0];
+    this.list.sortKey = prop;
+    this.list.sortOrder = dir;
   }
 }

@@ -1,9 +1,11 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 import { Session } from '../models/session';
-import { LocalizationService } from '../services';
+import { LocalizationService, AuthService } from '../services';
 import { SessionState } from '../states';
 import { GetAppConfiguration } from '../actions/config.actions';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
+import { Store, Actions } from '@ngxs/store';
+import { OAuthService } from 'angular-oauth2-oidc';
 
 export class DummyClass {}
 
@@ -18,12 +20,12 @@ describe('SessionState', () => {
 
   const createService = createServiceFactory({
     service: DummyClass,
-    mocks: [LocalizationService],
+    mocks: [LocalizationService, Store, Actions, OAuthService],
   });
 
   beforeEach(() => {
     spectator = createService();
-    state = new SessionState(spectator.get(LocalizationService));
+    state = new SessionState(null, null, new Subject());
   });
 
   describe('#getLanguage', () => {
@@ -47,13 +49,11 @@ describe('SessionState', () => {
         dispatchedData = action;
         return of({});
       });
-      const spy = jest.spyOn(spectator.get(LocalizationService), 'registerLocale');
 
       state.setLanguage({ patchState, dispatch } as any, { payload: 'en' }).subscribe();
 
       expect(patchedData).toEqual({ language: 'en' });
       expect(dispatchedData instanceof GetAppConfiguration).toBeTruthy();
-      expect(spy).toHaveBeenCalledWith('en');
     });
   });
 

@@ -18,6 +18,7 @@ namespace Volo.Abp.Cli.ProjectBuilding.Templates.Module
 
             DeleteUnrelatedProjects(context, steps);
             RandomizeSslPorts(context, steps);
+            UpdateNuGetConfig(context, steps);
             CleanupFolderHierarchy(context, steps);
 
             return steps;
@@ -43,6 +44,8 @@ namespace Volo.Abp.Cli.ProjectBuilding.Templates.Module
                 "MyCompanyName.MyProjectName.Web.Unified",
                 projectFolderPath: "/aspnet-core/host/MyCompanyName.MyProjectName.Web.Unified"
             ));
+
+            steps.Add(new RemoveFolderStep("/angular"));
         }
 
         private void RandomizeSslPorts(ProjectBuildContext context, List<ProjectBuildPipelineStep> steps)
@@ -56,6 +59,11 @@ namespace Volo.Abp.Cli.ProjectBuilding.Templates.Module
             }));
         }
 
+        private static void UpdateNuGetConfig(ProjectBuildContext context, List<ProjectBuildPipelineStep> steps)
+        {
+            steps.Add(new UpdateNuGetConfigStep("/aspnet-core/NuGet.Config"));
+        }
+        
         private void CleanupFolderHierarchy(ProjectBuildContext context, List<ProjectBuildPipelineStep> steps)
         {
             steps.Add(new MoveFolderStep("/aspnet-core/", "/"));

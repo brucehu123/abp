@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -56,7 +56,7 @@ namespace Volo.Abp.Http.Client.DynamicProxying
             IJsonSerializer jsonSerializer,
             IRemoteServiceHttpClientAuthenticator clientAuthenticator,
             ICancellationTokenProvider cancellationTokenProvider,
-            ICorrelationIdProvider correlationIdProvider, 
+            ICorrelationIdProvider correlationIdProvider,
             IOptions<AbpCorrelationIdOptions> correlationIdOptions,
             ICurrentTenant currentTenant)
         {
@@ -74,51 +74,40 @@ namespace Volo.Abp.Http.Client.DynamicProxying
             Logger = NullLogger<DynamicHttpProxyInterceptor<TService>>.Instance;
         }
 
-        public override void Intercept(IAbpMethodInvocation invocation)
-        {
-            if (invocation.Method.ReturnType == typeof(void))
-            {
-                AsyncHelper.RunSync(() => MakeRequestAsync(invocation));
-            }
-            else
-            {
-                var responseAsString = AsyncHelper.RunSync(() => MakeRequestAsync(invocation));
-
-                //TODO: Think on that
-                if (TypeHelper.IsPrimitiveExtended(invocation.Method.ReturnType, true))
-                {
-                    invocation.ReturnValue = Convert.ChangeType(responseAsString, invocation.Method.ReturnType);
-                }
-                else
-                {
-                    invocation.ReturnValue = JsonSerializer.Deserialize(
-                        invocation.Method.ReturnType,
-                        responseAsString
-                    );
-                }
-            }
-        }
-
-        public override Task InterceptAsync(IAbpMethodInvocation invocation)
+        public override async Task InterceptAsync(IAbpMethodInvocation invocation)
         {
             if (invocation.Method.ReturnType.GenericTypeArguments.IsNullOrEmpty())
             {
-                return MakeRequestAsync(invocation);
+                await MakeRequestAsync(invocation);
+            }
+            else
+            {
+                var result = (Task)GenericInterceptAsyncMethod
+                    .MakeGenericMethod(invocation.Method.ReturnType.GenericTypeArguments[0])
+                    .Invoke(this, new object[] { invocation });
+
+                invocation.ReturnValue = await GetResultAsync(
+                    result,
+                    invocation.Method.ReturnType.GetGenericArguments()[0]
+                );
             }
 
-            invocation.ReturnValue = GenericInterceptAsyncMethod
-                .MakeGenericMethod(invocation.Method.ReturnType.GenericTypeArguments[0])
-                .Invoke(this, new object[] { invocation });
+        }
 
-            return Task.CompletedTask;
+        private async Task<object> GetResultAsync(Task task, Type resultType)
+        {
+            await task;
+            return typeof(Task<>)
+                .MakeGenericType(resultType)
+                .GetProperty(nameof(Task<object>.Result), BindingFlags.Instance | BindingFlags.Public)
+                .GetValue(task);
         }
 
         private async Task<T> MakeRequestAndGetResultAsync<T>(IAbpMethodInvocation invocation)
         {
             var responseAsString = await MakeRequestAsync(invocation);
 
-            //TODO: Think on that
-            if (TypeHelper.IsPrimitiveExtended(typeof(T), true))
+            if (typeof(T) == typeof(string))
             {
                 return (T)Convert.ChangeType(responseAsString, typeof(T));
             }
@@ -133,7 +122,7 @@ namespace Volo.Abp.Http.Client.DynamicProxying
 
             var client = HttpClientFactory.Create(clientConfig.RemoteServiceName);
 
-            var action = await ApiDescriptionFinder.FindActionAsync(remoteServiceConfig.BaseUrl, typeof(TService), invocation.Method);
+            var action = await ApiDescriptionFinder.FindActionAsync(client, remoteServiceConfig.BaseUrl, typeof(TService), invocation.Method);
             var apiVersion = GetApiVersionInfo(action);
             var url = remoteServiceConfig.BaseUrl.EnsureEndsWith('/') + UrlBuilder.GenerateUrlWithParameters(action, invocation.ArgumentsDictionary, apiVersion);
 
@@ -161,8 +150,7 @@ namespace Volo.Abp.Http.Client.DynamicProxying
             }
 
             return await response.Content.ReadAsStringAsync();
-        } 
-        
+        }
 
         private ApiVersionInfo GetApiVersionInfo(ActionApiDescriptionModel action)
         {

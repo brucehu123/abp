@@ -4,17 +4,20 @@ using System.Data;
 namespace Volo.Abp.Uow
 {
     //TODO: Implement default options!
-    
+
     /// <summary>
     /// Global (default) unit of work options
     /// </summary>
     public class AbpUnitOfWorkDefaultOptions
     {
-        public UnitOfWorkTransactionBehavior TransactionBehavior { get; set; }
+        /// <summary>
+        /// Default value: <see cref="UnitOfWorkTransactionBehavior.Auto"/>.
+        /// </summary>
+        public UnitOfWorkTransactionBehavior TransactionBehavior { get; set; } = UnitOfWorkTransactionBehavior.Auto;
 
         public IsolationLevel? IsolationLevel { get; set; }
 
-        public TimeSpan? Timeout { get; set; }
+        public int? Timeout { get; set; }
 
         internal AbpUnitOfWorkOptions Normalize(AbpUnitOfWorkOptions options)
         {

@@ -4,7 +4,7 @@ This tutorial explains how to start ABP from scratch with minimal dependencies. 
 
 ## Create A New Project
 
-1. Create a new AspNet Core Web Application from Visual Studio 2019 (16.3.0+):
+1. Create a new AspNet Core Web Application from Visual Studio 2019 (16.4.0+):
 
 ![](images/create-new-aspnet-core-application-v2.png)
 
@@ -14,7 +14,7 @@ This tutorial explains how to start ABP from scratch with minimal dependencies. 
 
 3. Press to the create button:
 
-![create-aspnet-core-application](D:\Github\abp\docs\en\images\create-aspnet-core-application.png)
+![create-aspnet-core-application](images/create-aspnet-core-application.png)
 
 ## Install Volo.Abp.AspNetCore.Mvc Package
 
@@ -57,7 +57,7 @@ namespace BasicAspNetCoreApplication
 
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseMvcWithDefaultRouteAndArea();
+            app.UseConfiguredEndpoints();
         }
     }
 }
@@ -153,5 +153,5 @@ namespace BasicAspNetCoreApplication
 
 ## Source Code
 
-Get source code of the sample project created in this tutorial from [here](https://github.com/abpframework/abp/tree/master/samples/BasicAspNetCoreApplication).
+Get source code of the sample project created in this tutorial from [here](https://github.com/abpframework/abp-samples/tree/master/BasicAspNetCoreApplication).
 

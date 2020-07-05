@@ -1,18 +1,31 @@
-<ng-container *ngIf="visible">
-  <div class="modal show {{ modalClass }}" tabindex="-1" role="dialog">
-    <div class="modal-backdrop" [@fade]="isModalOpen" (click)="close()"></div>
+<ng-template #template>
+  <div
+    *ngIf="visible"
+    [@fade]="isModalOpen"
+    id="modal-container"
+    class="modal show {{ modalClass }}"
+    tabindex="-1"
+    role="dialog"
+  >
+    <div class="modal-backdrop" (click)="close()"></div>
     <div
       id="abp-modal-dialog"
       class="modal-dialog modal-{{ size }}"
       role="document"
-      [@dialog]="isModalOpen"
+      [class.modal-dialog-centered]="centered"
       #abpModalContent
     >
       <div id="abp-modal-content" class="modal-content">
         <div id="abp-modal-header" class="modal-header">
           <ng-container *ngTemplateOutlet="abpHeader"></ng-container>
           ​
-          <button id="abp-modal-close-button" type="button" class="close" aria-label="Close" (click)="close()">
+          <button
+            id="abp-modal-close-button"
+            type="button"
+            class="close"
+            aria-label="Close"
+            (click)="close()"
+          >
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -24,6 +37,7 @@
         </div>
       </div>
     </div>
-    <ng-content></ng-content>
   </div>
-</ng-container>
+</ng-template>
+
+<ng-content></ng-content>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Localization.Resources.AbpUi;
@@ -13,9 +13,9 @@ using MyCompanyName.MyProjectName.Web.Menus;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Localization;
-using Volo.Abp.Localization.Resources.AbpValidation;
 using Volo.Abp.Modularity;
 using Volo.Abp.UI.Navigation;
+using Volo.Abp.Validation.Localization;
 
 namespace MyCompanyName.MyProjectName
 {
@@ -88,11 +88,11 @@ namespace MyCompanyName.MyProjectName
             });
 
             app.UseVirtualFiles();
-            app.UseRouting();
+            app.UseRouting();          
             app.UseAuthentication();
+            app.UseAbpRequestLocalization();
             app.UseAuthorization();
 
-            app.UseAbpRequestLocalization();
 
             app.Use(async (ctx, next) =>
             {
@@ -107,7 +107,7 @@ namespace MyCompanyName.MyProjectName
                 }
             });
 
-            app.UseMvcWithDefaultRouteAndArea();
+            app.UseConfiguredEndpoints();
         }
     }
 }

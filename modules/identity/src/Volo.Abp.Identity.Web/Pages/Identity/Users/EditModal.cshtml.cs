@@ -4,7 +4,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Volo.Abp.Auditing;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Entities;
+using Volo.Abp.Validation;
 
 namespace Volo.Abp.Identity.Web.Pages.Identity.Users
 {
@@ -16,24 +19,20 @@ namespace Volo.Abp.Identity.Web.Pages.Identity.Users
         [BindProperty]
         public AssignedRoleViewModel[] Roles { get; set; }
 
-        private readonly IIdentityUserAppService _identityUserAppService;
-        private readonly IIdentityRoleAppService _identityRoleAppService;
+        protected IIdentityUserAppService IdentityUserAppService { get; }
 
-        public EditModalModel(IIdentityUserAppService identityUserAppService, IIdentityRoleAppService identityRoleAppService)
+        public EditModalModel(IIdentityUserAppService identityUserAppService)
         {
-            _identityUserAppService = identityUserAppService;
-            _identityRoleAppService = identityRoleAppService;
+            IdentityUserAppService = identityUserAppService;
         }
 
-        public async Task OnGetAsync(Guid id)
+        public virtual async Task<IActionResult> OnGetAsync(Guid id)
         {
-            UserInfo = ObjectMapper.Map<IdentityUserDto, UserInfoViewModel>(await _identityUserAppService.GetAsync(id));
+            UserInfo = ObjectMapper.Map<IdentityUserDto, UserInfoViewModel>(await IdentityUserAppService.GetAsync(id));
 
-            Roles = ObjectMapper.Map<IReadOnlyList<IdentityRoleDto>, AssignedRoleViewModel[]>(
-                (await _identityRoleAppService.GetListAsync()).Items
-            );
+            Roles = ObjectMapper.Map<IReadOnlyList<IdentityRoleDto>, AssignedRoleViewModel[]>((await IdentityUserAppService.GetAssignableRolesAsync()).Items);
 
-            var userRoleNames = (await _identityUserAppService.GetRolesAsync(UserInfo.Id)).Items.Select(r => r.Name).ToList();
+            var userRoleNames = (await IdentityUserAppService.GetRolesAsync(UserInfo.Id)).Items.Select(r => r.Name).ToList();
             foreach (var role in Roles)
             {
                 if (userRoleNames.Contains(role.Name))
@@ -41,15 +40,17 @@ namespace Volo.Abp.Identity.Web.Pages.Identity.Users
                     role.IsAssigned = true;
                 }
             }
+
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public virtual async Task<IActionResult> OnPostAsync()
         {
             ValidateModel();
 
             var input = ObjectMapper.Map<UserInfoViewModel, IdentityUserUpdateDto>(UserInfo);
             input.RoleNames = Roles.Where(r => r.IsAssigned).Select(r => r.Name).ToArray();
-            await _identityUserAppService.UpdateAsync(UserInfo.Id, input);
+            await IdentityUserAppService.UpdateAsync(UserInfo.Id, input);
 
             return NoContent();
         }
@@ -63,25 +64,26 @@ namespace Volo.Abp.Identity.Web.Pages.Identity.Users
             public string ConcurrencyStamp { get; set; }
 
             [Required]
-            [StringLength(IdentityUserConsts.MaxUserNameLength)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxUserNameLength))]
             public string UserName { get; set; }
 
-            [StringLength(IdentityUserConsts.MaxNameLength)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxNameLength))]
             public string Name { get; set; }
 
-            [StringLength(IdentityUserConsts.MaxSurnameLength)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxSurnameLength))]
             public string Surname { get; set; }
 
-            [StringLength(IdentityUserConsts.MaxPasswordLength)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxPasswordLength))]
             [DataType(DataType.Password)]
+            [DisableAuditing]
             public string Password { get; set; }
 
             [Required]
             [EmailAddress]
-            [StringLength(IdentityUserConsts.MaxEmailLength)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxEmailLength))]
             public string Email { get; set; }
 
-            [StringLength(IdentityUserConsts.MaxPhoneNumberLength)]
+            [DynamicStringLength(typeof(IdentityUserConsts), nameof(IdentityUserConsts.MaxPhoneNumberLength))]
             public string PhoneNumber { get; set; }
 
             public bool TwoFactorEnabled { get; set; }

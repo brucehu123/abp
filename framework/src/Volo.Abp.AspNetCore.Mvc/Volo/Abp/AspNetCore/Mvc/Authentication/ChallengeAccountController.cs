@@ -8,10 +8,12 @@ namespace Volo.Abp.AspNetCore.Mvc.Authentication
     public abstract class ChallengeAccountController : AbpController
     {
         protected string[] ChallengeAuthenticationSchemas { get; }
+        protected string AuthenticationType { get; }
 
         protected ChallengeAccountController(string[] challengeAuthenticationSchemas = null)
         {
-            ChallengeAuthenticationSchemas = challengeAuthenticationSchemas ?? new[]{ "oidc" };
+            ChallengeAuthenticationSchemas = challengeAuthenticationSchemas ?? new[] { "oidc" };
+            AuthenticationType = "Identity.Application";
         }
 
         [HttpGet]
@@ -42,7 +44,27 @@ namespace Volo.Abp.AspNetCore.Mvc.Authentication
         {
             await HttpContext.SignOutAsync();
 
-            return RedirectSafely(returnUrl, returnUrlHash);
+            if (HttpContext.User.Identity.AuthenticationType == AuthenticationType)
+            {
+                return RedirectSafely(returnUrl, returnUrlHash);
+            }
+
+            return new SignOutResult(ChallengeAuthenticationSchemas);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FrontChannelLogout(string sid)
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                var currentSid = User.FindFirst("sid").Value ?? string.Empty;
+                if (string.Equals(currentSid, sid, StringComparison.Ordinal))
+                {
+                    await Logout();
+                }
+            }
+
+            return NoContent();
         }
 
         protected RedirectResult RedirectSafely(string returnUrl, string returnUrlHash = null)
@@ -79,7 +101,7 @@ namespace Volo.Abp.AspNetCore.Mvc.Authentication
 
         protected virtual string GetAppHomeUrl()
         {
-            return "/";
+            return "~/";
         }
     }
 }

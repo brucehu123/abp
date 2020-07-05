@@ -12,7 +12,22 @@ namespace Volo.Abp.Uow
 
         public IsolationLevel? IsolationLevel { get; set; }
 
-        public TimeSpan? Timeout { get; set; }
+        /// <summary>
+        /// Milliseconds
+        /// </summary>
+        public int? Timeout { get; set; }
+
+        public AbpUnitOfWorkOptions()
+        {
+
+        }
+
+        public AbpUnitOfWorkOptions(bool isTransactional = false, IsolationLevel? isolationLevel = null, int? timeout = null)
+        {
+            IsTransactional = isTransactional;
+            IsolationLevel = isolationLevel;
+            Timeout = timeout;
+        }
 
         public AbpUnitOfWorkOptions Clone()
         {

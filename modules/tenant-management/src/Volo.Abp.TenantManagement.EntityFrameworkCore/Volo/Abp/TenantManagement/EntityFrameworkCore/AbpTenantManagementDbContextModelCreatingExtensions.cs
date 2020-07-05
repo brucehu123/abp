@@ -24,18 +24,20 @@ namespace Volo.Abp.TenantManagement.EntityFrameworkCore
             {
                 b.ToTable(options.TablePrefix + "Tenants", options.Schema);
 
-                b.ConfigureFullAuditedAggregateRoot();
+                b.ConfigureByConvention();
 
                 b.Property(t => t.Name).IsRequired().HasMaxLength(TenantConsts.MaxNameLength);
 
                 b.HasMany(u => u.ConnectionStrings).WithOne().HasForeignKey(uc => uc.TenantId).IsRequired();
 
-                b.HasIndex(u => u.Name).IsUnique();
+                b.HasIndex(u => u.Name);
             });
 
             builder.Entity<TenantConnectionString>(b =>
             {
                 b.ToTable(options.TablePrefix + "TenantConnectionStrings", options.Schema);
+
+                b.ConfigureByConvention();
 
                 b.HasKey(x => new { x.TenantId, x.Name });
 

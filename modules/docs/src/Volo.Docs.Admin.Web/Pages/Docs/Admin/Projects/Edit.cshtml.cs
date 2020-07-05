@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.TagHelpers.Form;
 using Volo.Abp.AspNetCore.Mvc.UI.RazorPages;
+using Volo.Abp.Validation;
 using Volo.Docs.Admin.Projects;
 using Volo.Docs.Projects;
 
@@ -29,7 +30,7 @@ namespace Volo.Docs.Admin.Pages.Docs.Admin.Projects
             _projectAppService = projectAppService;
         }
 
-        public async Task<ActionResult> OnGetAsync(Guid id)
+        public virtual async Task<ActionResult> OnGetAsync(Guid id)
         {
             var project = await _projectAppService.GetAsync(id);
 
@@ -42,7 +43,7 @@ namespace Volo.Docs.Admin.Pages.Docs.Admin.Projects
             throw new BusinessException("UnknowDocumentSourceExceptionMessage");
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public virtual async Task<IActionResult> OnPostAsync()
         {
             if (GithubProject != null)
             {
@@ -83,25 +84,28 @@ namespace Volo.Docs.Admin.Pages.Docs.Admin.Projects
             public Guid Id { get; set; }
 
             [Required]
-            [StringLength(ProjectConsts.MaxNameLength)]
+            [DynamicStringLength(typeof(ProjectConsts), nameof(ProjectConsts.MaxNameLength))]
             public string Name { get; set; }
 
             [Required]
             [SelectItems(nameof(FormatTypes))]
             public string Format { get; set; }
 
-            [StringLength(ProjectConsts.MaxDefaultDocumentNameLength)]
+            [DynamicStringLength(typeof(ProjectConsts), nameof(ProjectConsts.MaxDefaultDocumentNameLength))]
             public string DefaultDocumentName { get; set; }
 
-            [StringLength(ProjectConsts.MaxNavigationDocumentNameLength)]
+            [DynamicStringLength(typeof(ProjectConsts), nameof(ProjectConsts.MaxNavigationDocumentNameLength))]
             public string NavigationDocumentName { get; set; }
 
-            [StringLength(ProjectConsts.MaxVersionNameLength)]
+            [DynamicStringLength(typeof(ProjectConsts), nameof(ProjectConsts.MaxParametersDocumentNameLength))]
+            public string ParametersDocumentName { get; set; }
+
+            [DynamicStringLength(typeof(ProjectConsts), nameof(ProjectConsts.MaxVersionNameLength))]
             public string MinimumVersion { get; set; }
 
             public string MainWebsiteUrl { get; set; }
 
-            [StringLength(ProjectConsts.MaxLatestVersionBranchNameLength)]
+            [DynamicStringLength(typeof(ProjectConsts), nameof(ProjectConsts.MaxLatestVersionBranchNameLength))]
             public string LatestVersionBranchName { get; set; }
         }
 

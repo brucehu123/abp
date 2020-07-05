@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MongoDB.Driver.Linq;
 using Shouldly;
 using Volo.Abp.TestApp;
 using Volo.Abp.TestApp.Domain;
@@ -9,14 +10,27 @@ using Xunit;
 
 namespace Volo.Abp.MongoDB.Repositories
 {
+    [Collection(MongoTestCollection.Name)]
     public class Repository_Basic_Tests : Repository_Basic_Tests<AbpMongoDbTestModule>
     {
         [Fact]
-        public void Linq_Queries()
+        public void ToMongoQueryable_Test()
         {
-            PersonRepository.FirstOrDefault(p => p.Name == "Douglas").ShouldNotBeNull();
+            ((IMongoQueryable<Person>) PersonRepository).ShouldNotBeNull();
+            PersonRepository.As<IMongoQueryable<Person>>().ShouldNotBeNull();
+            ((IMongoQueryable<Person>) PersonRepository.Where(p => p.Name == "Douglas")).ShouldNotBeNull();
+            PersonRepository.Where(p => p.Name == "Douglas").As<IMongoQueryable<Person>>().ShouldNotBeNull();
+        }
 
-            PersonRepository.Count().ShouldBeGreaterThan(0);
+        [Fact]
+        public async Task Linq_Queries()
+        {
+            await WithUnitOfWorkAsync(() =>
+            {
+                PersonRepository.FirstOrDefault(p => p.Name == "Douglas").ShouldNotBeNull();
+                PersonRepository.Count().ShouldBeGreaterThan(0);
+                return Task.CompletedTask;
+            });
         }
 
         [Fact]
