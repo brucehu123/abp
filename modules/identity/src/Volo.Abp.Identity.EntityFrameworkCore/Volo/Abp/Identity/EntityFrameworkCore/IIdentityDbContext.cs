@@ -14,5 +14,9 @@ namespace Volo.Abp.Identity.EntityFrameworkCore
         DbSet<IdentityClaimType> ClaimTypes { get; set; }
 
         DbSet<OrganizationUnit> OrganizationUnits { get; set; }
+
+        DbSet<IdentitySecurityLog> SecurityLogs { get; set; }
+
+        DbSet<IdentityLinkUser> LinkUsers { get; set; }
     }
 }

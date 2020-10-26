@@ -4,21 +4,16 @@
       "text": "Getting Started",
       "items": [
         {
-          "text": "From Startup Templates",
+          "text": "Web Application",
           "path": "Getting-Started.md"
         },
         {
-          "text": "From Empty Projects",
-          "items": [
-            {
-              "text": "With ASP.NET Core Web Application",
-              "path": "Getting-Started-AspNetCore-Application.md"
-            },
-            {
-              "text": "With Console Application",
-              "path": "Getting-Started-Console-Application.md"
-            }
-          ]
+          "text": "Console Application",
+          "path": "Startup-Templates/Console.md"
+        },
+        {
+          "text": "Empty Web Project",
+          "path": "Getting-Started-AspNetCore-Application.md"
         }
       ]
     },
@@ -26,19 +21,47 @@
       "text": "Tutorials",
       "items": [
         {
-          "text": "Application Development",
+          "text": "Web Application Development",
           "items": [
             {
-              "text": "Part-1: Creating a new solution and listing items",
+              "text": "1: Creating the Server Side",
               "path": "Tutorials/Part-1.md"
             },
             {
-              "text": "Part-2: CRUD operations",
+              "text": "2: The Book List Page",
               "path": "Tutorials/Part-2.md"
             },
             {
-              "text": "Part-3: Integration tests",
+              "text": "3: Creating, Updating and Deleting Books",
               "path": "Tutorials/Part-3.md"
+            },
+            {
+              "text": "4: Integration Tests",
+              "path": "Tutorials/Part-4.md"
+            },
+            {
+              "text": "5: Authorization",
+              "path": "Tutorials/Part-5.md"
+            },
+            {
+              "text": "6: Authors: Domain layer",
+              "path": "Tutorials/Part-6.md"
+            },
+            {
+              "text": "7: Authors: Database Integration",
+              "path": "Tutorials/Part-7.md"
+            },
+            {
+              "text": "8: Authors: Application Layer",
+              "path": "Tutorials/Part-8.md"
+            },
+            {
+              "text": "9: Authors: User Interface",
+              "path": "Tutorials/Part-9.md"
+            },
+            {
+              "text": "10: Book to Author Relation",
+              "path": "Tutorials/Part-10.md"
             }
           ]
         }
@@ -66,10 +89,6 @@
           ]
         },
         {
-          "text": "\"How to\" Guides",
-          "path": "How-To/Index.md"
-        },
-        {
           "text": "Migrating from the ASP.NET Boilerplate",
           "path": "AspNet-Boilerplate-Migration-Guide.md"
         }
@@ -78,6 +97,19 @@
     {
       "text": "CLI",
       "path": "CLI.md"
+    },
+    {
+      "text": "Authentication & Security",
+      "items": [
+        {
+          "text": "Social/External Logins",
+          "path": "Authentication/Social-External-Logins.md"
+        },
+        {
+          "text": "CSRF/XSRF & Anti Forgery",
+          "path": "CSRF-Anti-Forgery.md"
+        }
+      ]
     },
     {
       "text": "Fundamentals",
@@ -128,7 +160,13 @@
         },
         {
           "text": "Caching",
-          "path": "Caching.md"
+          "path": "Caching.md",
+          "items": [
+            {
+              "text": "Redis Cache",
+              "path": "Redis-Cache.md"
+            }
+          ]
         },
         {
           "text": "Logging",
@@ -141,6 +179,10 @@
         {
           "text": "Settings",
           "path": "Settings.md"
+        },
+        {
+          "text": "Features",
+          "path": "Features.md"
         },
         {
           "text": "Data Filtering",
@@ -170,6 +212,14 @@
             {
               "text": "RabbitMQ Integration",
               "path": "Distributed-Event-Bus-RabbitMQ-Integration.md"
+            },
+            {
+              "text": "Kafka Integration",
+              "path": "Distributed-Event-Bus-Kafka-Integration.md"
+            },
+            {
+              "text": "Rebus Integration",
+              "path": "Distributed-Event-Bus-Rebus-Integration.md"
             }
           ]
         }
@@ -185,6 +235,19 @@
         {
           "text": "Object to object mapping",
           "path": "Object-To-Object-Mapping.md"
+        },
+        {
+          "text": "Email Sending",
+          "items": [
+            {
+              "text": "Email Sending System",
+              "path": "Emailing.md"
+            },
+            {
+              "text": "MailKit Integration",
+              "path": "MailKit.md"
+            }
+          ]
         },
         {
           "text": "BLOB Storing",
@@ -209,11 +272,23 @@
                   "path": "Blob-Storing-Azure.md"
                 },
                 {
+                  "text": "Aliyun Provider",
+                  "path": "Blob-Storing-Aliyun.md"
+                },
+                {
+                  "text": "Minio Provider",
+                  "path": "Blob-Storing-Minio.md"
+                },
+                {
+                  "text": "AWS Provider",
+                  "path": "Blob-Storing-Aws.md"
+                },
+                {
                   "text": "Create a Custom Provider",
                   "path": "Blob-Storing-Custom-Provider.md"
                 }
               ]
-            }            
+            }
           ]
         },
         {
@@ -325,8 +400,24 @@
       "text": "User Interface",
       "items": [
         {
-          "text": "ASP.NET Core",
+          "text": "ASP.NET Core MVC / Razor Pages",
           "items": [
+            {
+              "text": "Navigation / Menus",
+              "path": "UI/AspNetCore/Navigation-Menu.md"
+            },
+            {
+              "text": "Forms & Validation",
+              "path": "UI/AspNetCore/Forms-Validation.md"
+            },
+            {
+              "text": "Modals",
+              "path": "UI/AspNetCore/Modals.md"
+            },
+            {
+              "text": "Page Alerts",
+              "path": "UI/AspNetCore/Page-Alerts.md"
+            },
             {
               "text": "Client Side Package Management",
               "path": "UI/AspNetCore/Client-Side-Package-Management.md"
@@ -354,12 +445,95 @@
               "path": "UI/AspNetCore/Widgets.md"
             },
             {
+              "text": "Layout Hooks",
+              "path": "UI/AspNetCore/Layout-Hooks.md"
+            },
+            {
               "text": "Theming",
               "path": "UI/AspNetCore/Theming.md"
             },
             {
+              "text": "JavaScript API",
+              "items": [
+                {
+                  "text": "Overall",
+                  "path": "UI/AspNetCore/JavaScript-API/Index.md"
+                },
+                {
+                  "text": "Localization",
+                  "path": "UI/AspNetCore/JavaScript-API/Localization.md"
+                },
+                {
+                  "text": "Auth",
+                  "path": "UI/AspNetCore/JavaScript-API/Auth.md"
+                },
+                {
+                  "text": "Current User",
+                  "path": "UI/AspNetCore/JavaScript-API/CurrentUser.md"
+                },
+                {
+                  "text": "Settings",
+                  "path": "UI/AspNetCore/JavaScript-API/Settings.md"
+                },
+                {
+                  "text": "Features",
+                  "path": "UI/AspNetCore/JavaScript-API/Features.md"
+                },
+                {
+                  "text": "AJAX",
+                  "path": "UI/AspNetCore/JavaScript-API/Ajax.md"
+                },
+                {
+                  "text": "Message",
+                  "path": "UI/AspNetCore/JavaScript-API/Message.md"
+                },
+                {
+                  "text": "Notify",
+                  "path": "UI/AspNetCore/JavaScript-API/Notify.md"
+                },
+                {
+                  "text": "Block/Busy",
+                  "path": "UI/AspNetCore/JavaScript-API/Block-Busy.md"
+                },
+                {
+                  "text": "Events",
+                  "path": "UI/AspNetCore/JavaScript-API/Events.md"
+                },
+                {
+                  "text": "DOM",
+                  "path": "UI/AspNetCore/JavaScript-API/DOM.md"
+                },
+                {
+                  "text": "Logging",
+                  "path": "UI/AspNetCore/JavaScript-API/Logging.md"
+                },
+                {
+                  "text": "Resource Loader",
+                  "path": "UI/AspNetCore/JavaScript-API/ResourceLoader.md"
+                }
+              ]
+            },
+            {
               "text": "Customize/Extend the UI",
               "path": "UI/AspNetCore/Customization-User-Interface.md"
+            }
+          ]
+        },
+        {
+          "text": "Blazor",
+          "items": [
+            {
+              "text": "Overall",
+              "path": "UI/Blazor/Overall.md"
+            },
+            {
+              "text": "Services",
+              "items": [
+                {
+                  "text": "Overall",
+                  "path": "UI/Blazor/Services/Notification.md"
+                }
+              ]
             }
           ]
         },
@@ -371,64 +545,108 @@
               "path": "UI/Angular/Migration-Guide-v3.md"
             },
             {
-              "text": "Service Proxies",
-              "path": "UI/Angular/Service-Proxies.md"
+              "text": "Quick Start",
+              "path": "UI/Angular/Quick-Start.md"
             },
             {
-              "text": "HTTP Requests",
-              "path": "UI/Angular/HTTP-Requests.md"
+              "text": "Development",
+              "items": [
+                {
+                  "text": "Environment Variables",
+                  "path": "UI/Angular/Environment.md"
+                },
+                {
+                  "text": "About Feature Libraries",
+                  "path": "UI/Angular/Feature-Libraries.md"
+                },
+                {
+                  "text": "Service Proxies",
+                  "path": "UI/Angular/Service-Proxies.md"
+                },
+                {
+                  "text": "PWA Configuration",
+                  "path": "UI/Angular/PWA-Configuration.md"
+                }
+              ]
             },
             {
-              "text": "Localization",
-              "path": "UI/Angular/Localization.md"
+              "text": "Core Functionality",
+              "items": [
+                {
+                  "text": "Config State",
+                  "path": "UI/Angular/Config-State.md"
+                },
+                {
+                  "text": "HTTP Requests",
+                  "path": "UI/Angular/HTTP-Requests.md"
+                },
+                {
+                  "text": "Localization",
+                  "path": "UI/Angular/Localization.md"
+                },
+                {
+                  "text": "Permission Management",
+                  "path": "UI/Angular/Permission-Management.md"
+                },
+                {
+                  "text": "Multi Tenancy",
+                  "path": "UI/Angular/Multi-Tenancy.md"
+                }
+              ]
             },
             {
-              "text": "Permission Management",
-              "path": "UI/Angular/Permission-Management.md"
+              "text": "Utilities",
+              "items": [
+                {
+                  "text": "Managing RxJS Subscriptions",
+                  "path": "UI/Angular/Subscription-Service.md"
+                },
+                {
+                  "text": "Working with Lists",
+                  "path": "UI/Angular/List-Service.md"
+                },
+                {
+                  "text": "Easy *ngFor trackBy",
+                  "path": "UI/Angular/Track-By-Service.md"
+                },
+                {
+                  "text": "Inserting Scripts & Styles to DOM",
+                  "path": "UI/Angular/Dom-Insertion-Service.md"
+                },
+                {
+                  "text": "Lazy Loading Scripts & Styles",
+                  "path": "UI/Angular/Lazy-Load-Service.md"
+                },
+                {
+                  "text": "Projecting Angular Content",
+                  "path": "UI/Angular/Content-Projection-Service.md"
+                },
+                {
+                  "text": "Confirmation Popup",
+                  "path": "UI/Angular/Confirmation-Service.md"
+                },
+                {
+                  "text": "Toast Overlay",
+                  "path": "UI/Angular/Toaster-Service.md"
+                }
+              ]
             },
             {
-              "text": "Confirmation Popup",
-              "path": "UI/Angular/Confirmation-Service.md"
-            },
-            {
-              "text": "Toast Overlay",
-              "path": "UI/Angular/Toaster-Service.md"
-            },
-            {
-              "text": "Config State",
-              "path": "UI/Angular/Config-State.md"
-            },
-            {
-              "text": "Modifying the Menu",
-              "path": "UI/Angular/Modifying-the-Menu.md"
-            },
-            {
-              "text": "Component Replacement",
-              "path": "UI/Angular/Component-Replacement.md"
-            },
-            {
-              "text": "Custom Setting Page",
-              "path": "UI/Angular/Custom-Setting-Page.md"
-            },
-            {
-              "text": "Lazy Loading Scripts & Styles",
-              "path": "UI/Angular/Lazy-Load-Service.md"
-            },
-            {
-              "text": "DomInsertionService",
-              "path": "UI/Angular/Dom-Insertion-Service.md"
-            },
-            {
-              "text": "ContentProjectionService",
-              "path": "UI/Angular/Content-Projection-Service.md"
-            },
-            {
-              "text": "TrackByService",
-              "path": "UI/Angular/Track-By-Service.md"
-            },
-            {
-              "text": "ListService",
-              "path": "UI/Angular/List-Service.md"
+              "text": "Customization",
+              "items": [
+                {
+                  "text": "Modifying the Menu",
+                  "path": "UI/Angular/Modifying-the-Menu.md"
+                },
+                {
+                  "text": "Component Replacement",
+                  "path": "UI/Angular/Component-Replacement.md"
+                },
+                {
+                  "text": "Custom Setting Page",
+                  "path": "UI/Angular/Custom-Setting-Page.md"
+                }
+              ]
             }
           ]
         },
@@ -604,6 +822,10 @@
       "path": "Microservice-Architecture.md"
     },
     {
+      "text": "Preview Releases",
+      "path": "Previews.md"
+    },
+    {
       "text": "Nightly Builds",
       "path": "Nightly-Builds.md"
     },
@@ -612,12 +834,20 @@
       "path": "Road-Map.md"
     },
     {
+      "text": "Upgrading",
+      "path": "Upgrading.md"
+    },
+    {
       "text": "Contribution Guide",
       "path": "Contribution/Index.md"
     },
     {
       "text": "API Documentation",
       "path": "{ApiDocumentationUrl}"
+    },
+    {
+      "text": "Official Packages",
+      "path": "https://abp.io/packages"
     }
   ]
 }

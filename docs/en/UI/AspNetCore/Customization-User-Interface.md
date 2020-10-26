@@ -158,7 +158,7 @@ Just as explained above, you can replace any component, layout or c# class of th
 
 ## Overriding Static Resources
 
-Overriding a static embedded resource (like JavaScript, Css or image files) of a module is pretty easy. Just place a file in the same path in your solution and let the Virtual File System to handle it.
+Overriding a static embedded resource (like JavaScript, Css or image files) of a module is pretty easy. Just place a file in the same path in your solution and let the [Virtual File System](../../Virtual-File-System.md) to handle it.
 
 ## Manipulating the Bundles
 
@@ -376,7 +376,7 @@ Assume that you need to add the Google Analytics script to the layout (that will
 
 ![bookstore-google-analytics-view-component](../../images/bookstore-google-analytics-view-component.png)
 
-**NotificationViewComponent.cs**
+**GoogleAnalyticsViewComponent.cs**
 
 ````csharp
 public class GoogleAnalyticsViewComponent : AbpViewComponent
@@ -441,7 +441,7 @@ Layout system allows themes to define standard, named layouts and allows any pag
 * "**Account**": This layout is used by login, register and other similar pages. It is used for the pages under the `/Pages/Account` folder by default.
 * "**Empty**": Empty and minimal layout.
 
-These names are defined in the `StandardLayouts` class as constants. You can definitely create your own layouts, but these are standard layout names and implemented by all the themes out of the box.
+These names are defined in the `StandardLayouts` class as constants. You can definitely create your own layouts, but these are the standard layout names and implemented by all the themes out of the box.
 
 #### Layout Location
 

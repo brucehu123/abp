@@ -9,6 +9,7 @@ import { RestOccurError } from '../actions/rest.actions';
 import { SetLanguage } from '../actions/session.actions';
 import { ApplicationConfiguration } from '../models/application-configuration';
 import { Config } from '../models/config';
+import { interpolate } from '../utils/string-utils';
 import { SessionState } from './session.state';
 
 @State<Config.State>({
@@ -25,6 +26,11 @@ export class ConfigState {
   @Selector()
   static getApplicationInfo(state: Config.State): Config.Application {
     return state.environment.application || ({} as Config.Application);
+  }
+
+  @Selector()
+  static getEnvironment(state: Config.State): Config.Environment {
+    return state.environment;
   }
 
   static getOne(key: string) {
@@ -60,6 +66,14 @@ export class ConfigState {
   static getApiUrl(key?: string) {
     const selector = createSelector([ConfigState], (state: Config.State): string => {
       return (state.environment.apis[key || 'default'] || state.environment.apis.default).url;
+    });
+
+    return selector;
+  }
+
+  static getFeature(key: string) {
+    const selector = createSelector([ConfigState], (state: Config.State) => {
+      return snq(() => state.features.values[key]);
     });
 
     return selector;
@@ -119,6 +133,16 @@ export class ConfigState {
     return selector;
   }
 
+  static getLocalizationResource(resourceName: string) {
+    const selector = createSelector([ConfigState], (state: Config.State): {
+      [key: string]: string;
+    } => {
+      return state.localization.values[resourceName];
+    });
+
+    return selector;
+  }
+
   static getLocalization(
     key: string | Config.LocalizationWithDefault,
     ...interpolateParams: string[]
@@ -172,14 +196,12 @@ export class ConfigState {
         return defaultValue || sourceKey;
       }
 
+      // [TODO]: next line should be removed in v3.2, breaking change!!!
       interpolateParams = interpolateParams.filter(params => params != null);
-      if (localization && interpolateParams && interpolateParams.length) {
-        interpolateParams.forEach(param => {
-          localization = localization.replace(/[\'\"]?\{[\d]+\}[\'\"]?/, param);
-        });
-      }
+      if (localization) localization = interpolate(localization, interpolateParams);
 
       if (typeof localization !== 'string') localization = '';
+
       return localization || defaultValue || (key as string);
     });
 
@@ -201,20 +223,17 @@ export class ConfigState {
           }),
         ),
         switchMap(configuration => {
-          let defaultLang: string =
-            configuration.setting.values['Abp.Localization.DefaultLanguage'];
+          let lang = configuration.localization.currentCulture.cultureName;
 
-          if (defaultLang.includes(';')) {
-            defaultLang = defaultLang.split(';')[0];
+          if (lang.includes(';')) {
+            lang = lang.split(';')[0];
           }
 
-          document.documentElement.setAttribute(
-            'lang',
-            configuration.localization.currentCulture.cultureName,
-          );
+          document.documentElement.setAttribute('lang', lang);
+
           return this.store.selectSnapshot(SessionState.getLanguage)
             ? of(null)
-            : dispatch(new SetLanguage(defaultLang, false));
+            : dispatch(new SetLanguage(lang, false));
         }),
         catchError((err: HttpErrorResponse) => {
           dispatch(new RestOccurError(err));
@@ -225,8 +244,6 @@ export class ConfigState {
 
   @Action(SetEnvironment)
   setEnvironment({ patchState }: StateContext<Config.State>, { environment }: SetEnvironment) {
-    return patchState({
-      environment,
-    });
+    return patchState({ environment });
   }
 }

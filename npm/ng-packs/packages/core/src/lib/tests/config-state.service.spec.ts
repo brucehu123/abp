@@ -1,6 +1,7 @@
 import { createServiceFactory, SpectatorService, SpyObject } from '@ngneat/spectator/jest';
 import { Store } from '@ngxs/store';
 import * as ConfigActions from '../actions';
+import { ApplicationConfiguration } from '../models/application-configuration';
 import { Config } from '../models/config';
 import { ConfigStateService } from '../services/config-state.service';
 import { ConfigState } from '../states';
@@ -87,7 +88,7 @@ const CONFIG_STATE_DATA = {
     userName: null,
     email: null,
     roles: [],
-  },
+  } as ApplicationConfiguration.CurrentUser,
   features: {
     values: {},
   },
@@ -102,7 +103,7 @@ describe('ConfigStateService', () => {
   beforeEach(() => {
     spectator = createService();
     service = spectator.service;
-    store = spectator.get(Store);
+    store = spectator.inject(Store);
   });
   test('should have the all ConfigState static methods', () => {
     const reg = /(?<=static )(.*)(?=\()/gm;

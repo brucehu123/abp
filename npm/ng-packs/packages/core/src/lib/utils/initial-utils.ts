@@ -1,30 +1,28 @@
 import { registerLocaleData } from '@angular/common';
-import { Injector } from '@angular/core';
+import { Injector, isDevMode } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { tap } from 'rxjs/operators';
 import { GetAppConfiguration } from '../actions/config.actions';
-import differentLocales from '../constants/different-locales';
 import { ABP } from '../models/common';
+import { AuthService } from '../services/auth.service';
 import { ConfigState } from '../states/config.state';
+import { clearOAuthStorage } from '../strategies/auth-flow.strategy';
+import { LocaleErrorHandlerData, LOCALE_ERROR_HANDLER } from '../tokens/locale-error-handler.token';
 import { CORE_OPTIONS } from '../tokens/options.token';
-
-export function configureOAuth(injector: Injector, options: ABP.Root) {
-  const fn = () => {
-    const oAuth = injector.get(OAuthService);
-    oAuth.configure(options.environment.oAuthConfig);
-    return Promise.resolve();
-  };
-
-  return fn;
-}
+import { getRemoteEnv } from './environment-utils';
+import { parseTenantFromUrl } from './multi-tenancy-utils';
 
 export function getInitialData(injector: Injector) {
-  const fn = () => {
+  const fn = async () => {
     const store: Store = injector.get(Store);
-    const { skipGetAppConfiguration } = injector.get(CORE_OPTIONS) as ABP.Root;
+    const options = injector.get(CORE_OPTIONS) as ABP.Root;
 
-    if (skipGetAppConfiguration) return;
+    await getRemoteEnv(injector, options.environment);
+    await parseTenantFromUrl(injector);
+    await injector.get(AuthService).init();
+
+    if (options.skipGetAppConfiguration) return;
 
     return store
       .dispatch(new GetAppConfiguration())
@@ -35,10 +33,10 @@ export function getInitialData(injector: Injector) {
   return fn;
 }
 
-function checkAccessToken(store: Store, injector: Injector) {
+export function checkAccessToken(store: Store, injector: Injector) {
   const oAuth = injector.get(OAuthService);
   if (oAuth.hasValidAccessToken() && !store.selectSnapshot(ConfigState.getDeep('currentUser.id'))) {
-    oAuth.logOut();
+    clearOAuthStorage();
   }
 }
 
@@ -49,18 +47,64 @@ export function localeInitializer(injector: Injector) {
     const lang = store.selectSnapshot(state => state.SessionState.language) || 'en';
 
     return new Promise((resolve, reject) => {
-      registerLocale(lang).then(() => resolve('resolved'), reject);
+      registerLocale(lang, injector).then(() => resolve('resolved'), reject);
     });
   };
 
   return fn;
 }
 
-export function registerLocale(locale: string) {
-  return import(
-    /* webpackInclude: /(af|am|ar-SA|as|az-Latn|be|bg|bn-BD|bn-IN|bs|ca|ca-ES-VALENCIA|cs|cy|da|de|de|el|en-GB|en|es|en|es-US|es-MX|et|eu|fa|fi|en|fr|fr|fr-CA|ga|gd|gl|gu|ha|he|hi|hr|hu|hy|id|ig|is|it|it|ja|ka|kk|km|kn|ko|kok|en|en|lb|lt|lv|en|mk|ml|mn|mr|ms|mt|nb|ne|nl|nl-BE|nn|en|or|pa|pa-Arab|pl|en|pt|pt-PT|en|en|ro|ru|rw|pa-Arab|si|sk|sl|sq|sr-Cyrl-BA|sr-Cyrl|sr-Latn|sv|sw|ta|te|tg|th|ti|tk|tn|tr|tt|ug|uk|ur|uz-Latn|vi|wo|xh|yo|zh-Hans|zh-Hant|zu)\.js$/ */
-    `@angular/common/locales/${differentLocales[locale] || locale}.js`
-  ).then(module => {
-    registerLocaleData(module.default);
+export function registerLocale(locale: string, injector: Injector): Promise<any> {
+  const { cultureNameLocaleFileMap } = injector.get(CORE_OPTIONS, {} as ABP.Root);
+
+  const errorHandlerFn = injector.get(LOCALE_ERROR_HANDLER, defaultLocalErrorHandlerFn);
+
+  return new Promise((resolve, reject) => {
+    return import(
+      /* webpackChunkName: "_locale-[request]"*/
+      /* webpackInclude: /[/\\](ar|cs|en|fr|pt|tr|ru|hu|sl|zh-Hans|zh-Hant).js/ */
+      /* webpackExclude: /[/\\]global|extra/ */
+      `@angular/common/locales/${cultureNameLocaleFileMap[locale] || locale}.js`
+    )
+      .then(module => {
+        registerLocaleData(module.default, locale);
+        resolve(module.default);
+      })
+      .catch(error => {
+        errorHandlerFn({
+          resolve,
+          reject,
+          error,
+          injector,
+          locale,
+          storedLocales: { ...extraLocales },
+        });
+      });
   });
+}
+
+const extraLocales = {};
+export function storeLocaleData(data: any, localeId: string) {
+  extraLocales[localeId] = data;
+}
+
+async function defaultLocalErrorHandlerFn({
+  locale,
+  storedLocales,
+  resolve,
+  injector,
+}: LocaleErrorHandlerData) {
+  if (storedLocales[locale]) {
+    registerLocaleData(storedLocales[locale], locale);
+    resolve();
+    return;
+  }
+
+  if (isDevMode) {
+    console.error(
+      `Cannot find the ${locale} locale file. You can check how can add new culture at https://docs.abp.io/en/abp/latest/UI/Angular/Localization#adding-new-culture`,
+    );
+  }
+
+  resolve();
 }

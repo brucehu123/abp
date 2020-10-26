@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Volo.Abp.Cli.Commands.Services;
 using Volo.Abp.Cli.Http;
 using Volo.Abp.Cli.ProjectBuilding;
+using Volo.Abp.Cli.Utils;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Json;
 
@@ -39,7 +40,7 @@ namespace Volo.Abp.Cli.ProjectModification
             EfCoreMigrationAdder efCoreMigrationAdder,
             DerivedClassFinder derivedClassFinder,
             ProjectNpmPackageAdder projectNpmPackageAdder,
-            NpmGlobalPackagesChecker npmGlobalPackagesChecker, 
+            NpmGlobalPackagesChecker npmGlobalPackagesChecker,
             IRemoteServiceExceptionHandler remoteServiceExceptionHandler,
             SourceCodeDownloadService sourceCodeDownloadService,
             SolutionFileModifier solutionFileModifier,
@@ -67,14 +68,16 @@ namespace Volo.Abp.Cli.ProjectModification
             string startupProject,
             string version,
             bool skipDbMigrations = false,
-            bool withSourceCode = false)
+            bool withSourceCode = false,
+            bool addSourceCodeToSolutionFile = false)
         {
             Check.NotNull(solutionFile, nameof(solutionFile));
             Check.NotNull(moduleName, nameof(moduleName));
 
             var module = await FindModuleInfoAsync(moduleName);
 
-            Logger.LogInformation($"Installing module '{module.Name}' to the solution '{Path.GetFileNameWithoutExtension(solutionFile)}'");
+            Logger.LogInformation(
+                $"Installing module '{module.Name}' to the solution '{Path.GetFileNameWithoutExtension(solutionFile)}'");
 
             var projectFiles = ProjectFinder.GetProjectFiles(solutionFile);
 
@@ -84,16 +87,93 @@ namespace Volo.Abp.Cli.ProjectModification
             {
                 var modulesFolderInSolution = Path.Combine(Path.GetDirectoryName(solutionFile), "modules");
                 await DownloadSourceCodesToSolutionFolder(module, modulesFolderInSolution, version);
-                await SolutionFileModifier.AddModuleToSolutionFileAsync(module, solutionFile);
-                await NugetPackageToLocalReferenceConverter.Convert(module, solutionFile);
+                await RemoveUnnecessaryProjectsAsync(Path.GetDirectoryName(solutionFile), module, projectFiles);
 
-                await HandleAngularProject(modulesFolderInSolution, solutionFile);
+                if (addSourceCodeToSolutionFile)
+                {
+                    await SolutionFileModifier.AddModuleToSolutionFileAsync(module, solutionFile);
+                }
+
+                await NugetPackageToLocalReferenceConverter.Convert(module, solutionFile);
+                await AddAngularSourceCode(modulesFolderInSolution, solutionFile);
+            }
+            else
+            {
+                await AddAngularPackages(solutionFile, module);
             }
 
             ModifyDbContext(projectFiles, module, startupProject, skipDbMigrations);
         }
 
-        private async Task HandleAngularProject(string modulesFolderInSolution, string solutionFilePath)
+        private async Task RemoveUnnecessaryProjectsAsync(string solutionDirectory, ModuleWithMastersInfo module, string[] projectFiles)
+        {
+            var moduleDirectory = Path.Combine(solutionDirectory, "modules", module.Name);
+            var moduleSolutionFile = Directory.GetFiles(moduleDirectory, "*.sln", SearchOption.TopDirectoryOnly).First();
+            var isProjectTiered = await IsProjectTiered(projectFiles);
+
+            if (!projectFiles.Any(p => p.EndsWith(".Blazor.csproj")))
+            {
+                await RemoveProjectByTarget(module, moduleSolutionFile, NuGetPackageTarget.Blazor,isProjectTiered);
+            }
+
+            if (!projectFiles.Any(p => p.EndsWith(".Web.csproj")))
+            {
+                await RemoveProjectByTarget(module, moduleSolutionFile, NuGetPackageTarget.Web, isProjectTiered);
+            }
+
+            if (!projectFiles.Any(p => p.EndsWith(".MongoDB.csproj")))
+            {
+                await RemoveProjectByTarget(module, moduleSolutionFile, NuGetPackageTarget.MongoDB, isProjectTiered);
+            }
+
+            if (!projectFiles.Any(p => p.EndsWith(".EntityFrameworkCore.csproj")))
+            {
+                await RemoveProjectByTarget(module, moduleSolutionFile, NuGetPackageTarget.EntityFrameworkCore, isProjectTiered);
+            }
+        }
+
+        private async Task RemoveProjectByTarget(ModuleWithMastersInfo module, string moduleSolutionFile, NuGetPackageTarget target, bool isTieredProject)
+        {
+            var packages = module.NugetPackages.Where(n =>
+                (isTieredProject && n.TieredTarget != NuGetPackageTarget.Undefined
+                    ? n.TieredTarget
+                    : n.Target) == target
+            ).ToList();
+
+            foreach (var package in packages)
+            {
+                await SolutionFileModifier.RemoveProjectFromSolutionFileAsync(moduleSolutionFile, package.Name);
+
+                var projectPath = Path.Combine(Path.GetDirectoryName(moduleSolutionFile), "src", package.Name);
+                if (Directory.Exists(projectPath))
+                {
+                    Directory.Delete(projectPath, true);
+                }
+            }
+        }
+
+        private async Task AddAngularPackages(string solutionFilePath, ModuleWithMastersInfo module)
+        {
+            var angularPath = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(solutionFilePath)), "angular");
+
+            if (!Directory.Exists(angularPath))
+            {
+                return;
+            }
+
+            var angularPackages = module.NpmPackages?.Where(p => p.ApplicationType.HasFlag(NpmApplicationType.Angular))
+                .ToList();
+
+            if (!angularPackages.IsNullOrEmpty())
+            {
+                foreach (var npmPackage in angularPackages)
+                {
+                    await ProjectNpmPackageAdder.AddAsync(angularPath, npmPackage, true);
+                }
+            }
+        }
+
+        private async Task AddAngularSourceCode(string modulesFolderInSolution, string solutionFilePath)
         {
             var angularPath = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(solutionFilePath)), "angular");
 
@@ -120,7 +200,8 @@ namespace Volo.Abp.Cli.ProjectModification
             }
         }
 
-        private async Task DownloadSourceCodesToSolutionFolder(ModuleWithMastersInfo module, string modulesFolderInSolution, string version = null)
+        private async Task DownloadSourceCodesToSolutionFolder(ModuleWithMastersInfo module,
+            string modulesFolderInSolution, string version = null)
         {
             var targetModuleFolder = Path.Combine(modulesFolderInSolution, module.Name);
 
@@ -159,6 +240,12 @@ namespace Volo.Abp.Cli.ProjectModification
             {
                 Directory.Delete(demoFolder, true);
             }
+
+            var hostFolder = Path.Combine(targetModuleFolder, "host");
+            if (Directory.Exists(hostFolder))
+            {
+                Directory.Delete(hostFolder, true);
+            }
         }
 
         private async Task AddNugetAndNpmReferences(ModuleWithMastersInfo module, string[] projectFiles)
@@ -180,7 +267,10 @@ namespace Volo.Abp.Cli.ProjectModification
                 await ProjectNugetPackageAdder.AddAsync(targetProjectFile, nugetPackage);
             }
 
-            if (!module.NpmPackages.IsNullOrEmpty())
+            var mvcNpmPackages = module.NpmPackages?.Where(p => p.ApplicationType.HasFlag(NpmApplicationType.Mvc))
+                .ToList();
+
+            if (!mvcNpmPackages.IsNullOrEmpty())
             {
                 var targetProjects = ProjectFinder.FindNpmTargetProjectFile(projectFiles);
                 if (targetProjects.Any())
@@ -189,8 +279,7 @@ namespace Volo.Abp.Cli.ProjectModification
 
                     foreach (var targetProject in targetProjects)
                     {
-                        foreach (var npmPackage in module.NpmPackages.Where(p =>
-                            p.ApplicationType.HasFlag(NpmApplicationType.Mvc)))
+                        foreach (var npmPackage in mvcNpmPackages)
                         {
                             await ProjectNpmPackageAdder.AddAsync(Path.GetDirectoryName(targetProject), npmPackage);
                         }
@@ -203,10 +292,16 @@ namespace Volo.Abp.Cli.ProjectModification
             }
         }
 
-        protected void ModifyDbContext(string[] projectFiles, ModuleInfo module, string startupProject, bool skipDbMigrations = false)
+        protected void ModifyDbContext(string[] projectFiles, ModuleInfo module, string startupProject,
+            bool skipDbMigrations = false)
         {
             if (string.IsNullOrWhiteSpace(module.EfCoreConfigureMethodName))
             {
+                if (!skipDbMigrations)
+                {
+                    RunMigrator(projectFiles);
+                }
+
                 return;
             }
 
@@ -216,10 +311,16 @@ namespace Volo.Abp.Cli.ProjectModification
             }
 
             var dbMigrationsProject = projectFiles.FirstOrDefault(p => p.EndsWith(".DbMigrations.csproj"));
-            
+
             if (dbMigrationsProject == null)
             {
                 Logger.LogDebug("Solution doesn't have a \".DbMigrations\" project.");
+
+                if (!skipDbMigrations)
+                {
+                    RunMigrator(projectFiles);
+                }
+
                 return;
             }
 
@@ -227,15 +328,32 @@ namespace Volo.Abp.Cli.ProjectModification
 
             if (dbContextFile == null)
             {
-                Logger.LogDebug($"{dbMigrationsProject} project doesn't have a class that is derived from \"AbpDbContext\".");
+                Logger.LogDebug(
+                    $"{dbMigrationsProject} project doesn't have a class that is derived from \"AbpDbContext\".");
                 return;
             }
 
-            var addedNewBuilder = DbContextFileBuilderConfigureAdder.Add(dbContextFile, module.EfCoreConfigureMethodName);
+            var addedNewBuilder =
+                DbContextFileBuilderConfigureAdder.Add(dbContextFile, module.EfCoreConfigureMethodName);
 
-            if (addedNewBuilder && !skipDbMigrations)
+            if (!skipDbMigrations)
             {
-                EfCoreMigrationAdder.AddMigration(dbMigrationsProject, module.Name, startupProject); 
+                if (addedNewBuilder)
+                {
+                    EfCoreMigrationAdder.AddMigration(dbMigrationsProject, module.Name, startupProject);
+                }
+
+                RunMigrator(projectFiles);
+            }
+        }
+
+        protected virtual async Task RunMigrator(string[] projectFiles)
+        {
+            var dbMigratorProject = projectFiles.FirstOrDefault(p => p.EndsWith(".DbMigrator.csproj"));
+
+            if (!string.IsNullOrEmpty(dbMigratorProject))
+            {
+                CmdHelper.RunCmd("cd \"" + Path.GetDirectoryName(dbMigratorProject) + "\" && dotnet run");
             }
         }
 

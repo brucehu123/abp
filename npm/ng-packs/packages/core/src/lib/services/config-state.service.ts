@@ -17,6 +17,10 @@ export class ConfigStateService {
     return this.store.selectSnapshot(ConfigState.getApplicationInfo);
   }
 
+  getEnvironment() {
+    return this.store.selectSnapshot(ConfigState.getEnvironment);
+  }
+
   getOne(...args: Parameters<typeof ConfigState.getOne>) {
     return this.store.selectSnapshot(ConfigState.getOne(...args));
   }
@@ -27,6 +31,10 @@ export class ConfigStateService {
 
   getApiUrl(...args: Parameters<typeof ConfigState.getApiUrl>) {
     return this.store.selectSnapshot(ConfigState.getApiUrl(...args));
+  }
+
+  getFeature(...args: Parameters<typeof ConfigState.getFeature>) {
+    return this.store.selectSnapshot(ConfigState.getFeature(...args));
   }
 
   getSetting(...args: Parameters<typeof ConfigState.getSetting>) {
@@ -43,6 +51,10 @@ export class ConfigStateService {
 
   getLocalization(...args: Parameters<typeof ConfigState.getLocalization>) {
     return this.store.selectSnapshot(ConfigState.getLocalization(...args));
+  }
+
+  getLocalizationResource(...args: Parameters<typeof ConfigState.getLocalizationResource>) {
+    return this.store.selectSnapshot(ConfigState.getLocalizationResource(...args));
   }
 
   dispatchGetAppConfiguration() {

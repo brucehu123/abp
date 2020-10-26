@@ -15,6 +15,10 @@ namespace Volo.Abp.Identity.MongoDB
 
         public IMongoCollection<OrganizationUnit> OrganizationUnits => Collection<OrganizationUnit>();
 
+        public IMongoCollection<IdentitySecurityLog> SecurityLogs => Collection<IdentitySecurityLog>();
+
+        public IMongoCollection<IdentityLinkUser> LinkUsers => Collection<IdentityLinkUser>();
+
         protected override void CreateModel(IMongoModelBuilder modelBuilder)
         {
             base.CreateModel(modelBuilder);

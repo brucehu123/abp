@@ -193,7 +193,44 @@ import { Component } from '@angular/core';
 export class AppComponent {}
 ```
 
+## Mapping of Culture Name to Angular Locale File Name
 
+Some of the culture names defined in .NET do not match Angular locales. In such cases, the Angular app throws an error like below at runtime:
+
+![locale-error](./images/locale-error.png)
+
+If you see an error like this, you should pass the `cultureNameLocaleFileMap` property like below to CoreModule's forRoot static method.
+
+```js
+// app.module.ts
+
+@NgModule({
+  imports: [
+    // other imports
+     CoreModule.forRoot({
+      // other options
+      cultureNameLocaleFileMap: { 
+        "DotnetCultureName": "AngularLocaleFileName",
+        "pt-BR": "pt"  // example
+      }
+    })
+    //...
+```
+
+See [all locale files in Angular](https://github.com/angular/angular/tree/master/packages/common/locales).
+
+## Adding new culture
+
+```js
+//app.module.ts
+
+import { storeLocaleData } from '@abp/ng.core';
+import(
+/* webpackChunkName: "_locale-your-locale-js"*/
+/* webpackMode: "eager" */
+'@angular/common/locales/your-locale.js'
+).then(m => storeLocaleData(m.default, 'your-locale'));
+```
 ## See Also
 
 * [Localization in ASP.NET Core](../../Localization.md)

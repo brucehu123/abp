@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Validation;
 using Volo.Blogging.Admin.Blogs;
 using Volo.Blogging.Blogs;
+using Volo.Blogging.Blogs.Dtos;
 
 namespace Volo.Blogging.Admin.Pages.Blogging.Admin.Blogs
 {
@@ -28,7 +29,7 @@ namespace Volo.Blogging.Admin.Pages.Blogging.Admin.Blogs
 
         public virtual async Task<ActionResult> OnGetAsync()
         {
-            if (!await _authorization.IsGrantedAsync(BloggingAdminPermissions.Blogs.Update))
+            if (!await _authorization.IsGrantedAsync(BloggingPermissions.Blogs.Update))
             {
                 return Redirect("/");
             }

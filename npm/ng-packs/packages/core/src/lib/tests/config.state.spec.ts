@@ -3,6 +3,7 @@ import { createServiceFactory, SpectatorService, SpyObject } from '@ngneat/spect
 import { Store } from '@ngxs/store';
 import { of, ReplaySubject, timer } from 'rxjs';
 import { SetLanguage } from '../actions';
+import { ApplicationConfiguration } from '../models/application-configuration';
 import { Config } from '../models/config';
 import { ApplicationConfigurationService, ConfigStateService } from '../services';
 import { ConfigState } from '../states';
@@ -91,9 +92,11 @@ export const CONFIG_STATE_DATA = {
     userName: null,
     email: null,
     roles: [],
-  },
+  } as ApplicationConfiguration.CurrentUser,
   features: {
-    values: {},
+    values: {
+      'Chat.Enable': 'True',
+    },
   },
 } as Config.State;
 
@@ -110,9 +113,9 @@ describe('ConfigState', () => {
 
   beforeEach(() => {
     spectator = createService();
-    store = spectator.get(Store);
+    store = spectator.inject(Store);
     service = spectator.service;
-    state = new ConfigState(spectator.get(HttpClient), store);
+    state = new ConfigState(spectator.inject(HttpClient), store);
   });
 
   describe('#getAll', () => {
@@ -159,6 +162,14 @@ describe('ConfigState', () => {
       );
       expect(ConfigState.getApiUrl()(CONFIG_STATE_DATA)).toEqual(
         CONFIG_STATE_DATA.environment.apis.default.url,
+      );
+    });
+  });
+
+  describe('#getFeature', () => {
+    it('should return a setting', () => {
+      expect(ConfigState.getFeature('Chat.Enable')(CONFIG_STATE_DATA)).toEqual(
+        CONFIG_STATE_DATA.features.values['Chat.Enable'],
       );
     });
   });
@@ -238,8 +249,7 @@ describe('ConfigState', () => {
       let dispatchArg;
 
       const configuration = {
-        setting: { values: { 'Abp.Localization.DefaultLanguage': 'tr;TR' } },
-        localization: { currentCulture: {} },
+        localization: { currentCulture: { cultureName: 'en;EN' } },
       };
 
       const res$ = new ReplaySubject(1);
@@ -250,7 +260,7 @@ describe('ConfigState', () => {
         dispatchArg = a;
         return of(a);
       });
-      const httpClient = spectator.get(HttpClient);
+      const httpClient = spectator.inject(HttpClient);
       httpClient.get.andReturn(res$);
 
       state.addData({ patchState, dispatch } as any).subscribe();
@@ -258,7 +268,7 @@ describe('ConfigState', () => {
       timer(0).subscribe(() => {
         expect(patchStateArg).toEqual(configuration);
         expect(dispatchArg instanceof SetLanguage).toBeTruthy();
-        expect(dispatchArg).toEqual({ payload: 'tr', dispatchAppConfiguration: false });
+        expect(dispatchArg).toEqual({ payload: 'en', dispatchAppConfiguration: false });
         done();
       });
     });
